@@ -34,7 +34,7 @@ Each piece moves one square per turn:
 - **Lion**: any of the 8 directions (a chess king).
 - **Giraffe**: one square horizontally or vertically.
 - **Elephant**: one square diagonally.
-- **Chick**: one square straight forward; on reaching the far row it promotes to a **Hen**, which moves one step in any direction except the two back diagonals.
+- **Chick**: one square straight forward. Advancing onto the far row promotes it to a **Hen** (one step in any direction except the two back diagonals). A chick *dropped* onto the far row does not promote, so it is stuck there.
 
 <figure style="margin:1.5rem 0;text-align:center">
 <img src="/assets/posts/dobutsu-shogi/piece-moves.svg" alt="How each piece moves: dots mark the squares it can step to" style="max-width:560px">
