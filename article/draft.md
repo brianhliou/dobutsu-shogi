@@ -45,7 +45,7 @@ Each piece moves one square per turn:
 
 ### Winning
 
-Two ways to win: capture the opponent's Lion, or move a Lion into the far row and survive one turn there (a **Try**).
+Two ways to win: capture the opponent's Lion, or get your Lion to the enemy's back rank, onto a square the opponent can't immediately capture (a **Try**).
 
 ### Drops
 
@@ -55,7 +55,7 @@ A captured piece joins the captor's hand and can later be **dropped** onto any e
 
 ## 2. The result
 
-Dōbutsu shōgi is **strongly solved**: a lookup table (a *tablebase*) holds the exact value of every reachable position, so a program with it plays perfectly from any position, not just the opening. Chess is solved only for small endgames; checkers was solved in 2007 (a draw). Tanaka built the table by working backward from finished positions, covering every position the game can reach.
+Dōbutsu shōgi is **strongly solved**: a lookup table (a *tablebase*) holds the exact value of every reachable position, so a program with it plays perfectly from any position, not just the opening. Tanaka built the table by working backward from finished positions, covering every position the game can reach.
 
 The starting position is a **second-player win in 78 plies**. The first player loses to **zugzwang**: every move worsens the position, and passing isn't allowed, so moving first is itself the disadvantage.
 
@@ -68,13 +68,7 @@ Lb4-a3 : #-78
 Cb3xb2 : #-76
 ```
 
-`Cb3xb2`, grabbing the opponent's chick, is the fastest way to lose. The natural "take the free piece" move is the worst of the four.
-
----
-
-## 3. What the table shows
-
-Solving the whole game means every position carries a value, so some aggregate facts fall out:
+The full solution, in numbers:
 
 | Quantity | Value |
 |---|---|
@@ -83,7 +77,11 @@ Solving the whole game means every position carries a value, so some aggregate f
 | Wins / draws / losses (side to move) | 56,474,473 / 2,682,700 / 40,328,395 |
 | Average legal moves per position | 9.4 |
 
-A few results stand out:
+---
+
+## 3. Notable findings
+
+Beyond the headline result, a few things stand out:
 
 - **The longest forced win is 173 plies.** The opening's 78 is far from the worst case; somewhere in the tree sits a won position that takes 173 plies to finish.
 - **In 68 positions, the only winning move is to drop a chick where it can't move.** A chick on the opponent's back row has no square ahead of it, so the drop barely changes anything, close to passing a turn. Yet in these 68 positions every other move loses, and that near-pass is the one that wins.
