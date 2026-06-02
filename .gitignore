@@ -23,6 +23,9 @@ dist/
 # Third-party solver clone (reproducible — see research/reproduction.md)
 external/
 
+# Generated local article preview (build artifact)
+article/preview.html
+
 # Large generated artifacts (tablebases etc.) — commit deliberately, not by default
 *.tb
 *.tb.xz

@@ -1,0 +1,12 @@
+Animal glyphs: Twemoji (https://github.com/jdecked/twemoji)
+Copyright Twitter, Inc and other contributors.
+Graphics licensed under CC-BY 4.0: https://creativecommons.org/licenses/by/4.0/
+
+Files (Unicode codepoint -> use):
+  1f981 lion.svg      Lion
+  1f992 giraffe.svg   Giraffe
+  1f418 elephant.svg  Elephant
+  1f425 chick.svg     Chick
+  1f414 hen.svg       Hen (promoted Chick)
+
+Attribution is reproduced in the article footer/resources where these diagrams appear.
