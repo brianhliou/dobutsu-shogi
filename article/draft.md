@@ -25,8 +25,8 @@ Each player has four pieces: a **Lion**, a **Giraffe**, an **Elephant**, and a *
 
 <!-- assets generated in repo at assets/diagrams/; copy to blog /assets/posts/dobutsu-shogi/ on publish -->
 <figure style="margin:1.5rem 0;text-align:center">
-<img src="/assets/posts/dobutsu-shogi/initial-position.svg" alt="Dōbutsu shōgi starting position on a 3 by 4 board" style="max-width:280px">
-<figcaption style="font-size:0.85em;color:#666;margin-top:4px">Starting position. The second player (top, cool tiles pointing down) mirrors the first player (bottom, warm tiles pointing up), who moves first.</figcaption>
+<img src="/assets/posts/dobutsu-shogi/initial-position.svg" alt="Dōbutsu shōgi starting position on a 3 by 4 board" style="max-width:330px">
+<figcaption style="font-size:0.85em;color:#666;margin-top:4px">Starting position. The first player (bottom, ivory tiles pointing up) moves first; the second player (top, dark tiles pointing down) mirrors them. The dots on each piece mark the squares it can step to.</figcaption>
 </figure>
 
 Each piece moves one square per turn:
@@ -37,7 +37,7 @@ Each piece moves one square per turn:
 - **Chick**: one square straight forward. Advancing onto the far row promotes it to a **Hen** (one step in any direction except the two back diagonals). A chick *dropped* onto the far row does not promote, so it is stuck there.
 
 <figure style="margin:1.5rem 0;text-align:center">
-<img src="/assets/posts/dobutsu-shogi/piece-moves.svg" alt="How each piece moves: dots mark the squares it can step to" style="max-width:560px">
+<img src="/assets/posts/dobutsu-shogi/piece-moves.svg" alt="How each piece moves: dots mark the squares it can step to" style="max-width:640px">
 <figcaption style="font-size:0.85em;color:#666;margin-top:4px">Each piece moves one step to a dotted square; a Chick that advances to the far row promotes to a Hen.</figcaption>
 </figure>
 
@@ -85,12 +85,12 @@ A few results stand out:
 - **About 30% of won positions contain a forced mate**, and the mates stay short: the longest is 23 plies.
 
 <figure style="margin:1.5rem 0;text-align:center">
-<img src="/assets/posts/dobutsu-shogi/position-chickdrop.svg" alt="A position whose only winning move is dropping a chick on c1" style="max-width:430px">
+<img src="/assets/posts/dobutsu-shogi/position-chickdrop.svg" alt="A position whose only winning move is dropping a chick on c1" style="max-width:480px">
 <figcaption style="font-size:0.85em;color:#666;margin-top:4px">The only winning move is to drop the in-hand chick on c1 (circled), where it can never advance. Every other move loses.</figcaption>
 </figure>
 
 <figure style="margin:1.5rem 0;text-align:center">
-<img src="/assets/posts/dobutsu-shogi/position-173ply.svg" alt="A position that is a forced win in 173 plies" style="max-width:380px">
+<img src="/assets/posts/dobutsu-shogi/position-173ply.svg" alt="A position that is a forced win in 173 plies" style="max-width:430px">
 <figcaption style="font-size:0.85em;color:#666;margin-top:4px">The deepest forced win in the game: the side to move (warm pieces) wins in 173 plies, though down material.</figcaption>
 </figure>
 
