@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Render Dōbutsu Shōgi positions and a piece-movement legend to SVG.
 
-Pieces are shogi-style pentagon tiles carrying an animal glyph plus movement
-dots (as on the real game's pieces): a small dot in each direction the piece
-can step. Owner is shown by tile colour (first player ivory, second player dark
-slate) and pentagon orientation (first player points up, second points down).
+Pieces are rounded-square tiles carrying an animal glyph plus movement dots (as
+on the real game's pieces): a small dot at each edge/corner the piece can step
+toward. Owner is shown by tile colour (first player ivory, second player dark
+slate); a piece's facing shows in its dots (a chick's dot points at its opponent).
 Animal glyphs are Twemoji (CC-BY 4.0), embedded via <defs>/<use>; see
 assets/diagrams/emoji/CREDITS.txt.
 
@@ -43,9 +43,8 @@ CHAR = {"C": ("C", "sente"), "c": ("C", "gote"), "G": ("G", "sente"), "g": ("G",
         "E": ("E", "sente"), "e": ("E", "gote"), "L": ("L", "sente"), "l": ("L", "gote"),
         "R": ("H", "sente"), "r": ("H", "gote")}
 
-S2 = 0.7071
 DIRS = {"N": (0, -1), "S": (0, 1), "E": (1, 0), "W": (-1, 0),
-        "NE": (S2, -S2), "NW": (-S2, -S2), "SE": (S2, S2), "SW": (-S2, S2)}
+        "NE": (1, -1), "NW": (-1, -1), "SE": (1, 1), "SW": (-1, 1)}
 # directions a piece can step, in its own frame (N = toward the opponent)
 MOVES = {"L": ["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
          "G": ["N", "E", "S", "W"],
@@ -74,31 +73,21 @@ def defs(names):
     return "<defs>" + "".join(syms) + "</defs>"
 
 
-def pentagon(cx, cy, h, up=True, shoulder=0.58):
-    if up:
-        pts = [(cx, cy - h), (cx + h, cy - h * shoulder), (cx + h, cy + h),
-               (cx - h, cy + h), (cx - h, cy - h * shoulder)]
-    else:
-        pts = [(cx, cy + h), (cx + h, cy + h * shoulder), (cx + h, cy - h),
-               (cx - h, cy - h), (cx - h, cy + h * shoulder)]
-    return " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
-
-
-def tile(cx, cy, letter, owner, half=CELL * 0.42, glyph=CELL * 0.46, show_moves=True):
+def tile(cx, cy, letter, owner, half=CELL * 0.42, glyph=CELL * 0.48, show_moves=True):
     up = owner == "sente"
     fill, stroke, dotc = (SENTE_FILL, SENTE_STROKE, SENTE_DOT) if up \
         else (GOTE_FILL, GOTE_STROKE, GOTE_DOT)
-    parts = [f'<polygon points="{pentagon(cx, cy, half, up)}" fill="{fill}" '
-             f'stroke="{stroke}" stroke-width="2" stroke-linejoin="round"/>']
+    parts = [f'<rect x="{cx-half:.1f}" y="{cy-half:.1f}" width="{2*half:.1f}" '
+             f'height="{2*half:.1f}" rx="{half*0.16:.1f}" fill="{fill}" '
+             f'stroke="{stroke}" stroke-width="2"/>']
     if show_moves:
         sign = 1 if up else -1
-        r = half * 0.78
+        r = half * 0.80   # orthogonal dots at edge midpoints, diagonals at the corners
         for d in MOVES[letter]:
             ux, uy = DIRS[d]
             parts.append(f'<circle cx="{cx+sign*ux*r:.1f}" cy="{cy+sign*uy*r:.1f}" '
-                         f'r="{half*0.09:.1f}" fill="{dotc}"/>')
-    oy = cy + (0.10 * half if up else -0.10 * half)   # nudge the animal into the body
-    parts.append(f'<use href="#e_{PIECE[letter]}" x="{cx-glyph/2:.1f}" y="{oy-glyph/2:.1f}" '
+                         f'r="{half*0.085:.1f}" fill="{dotc}"/>')
+    parts.append(f'<use href="#e_{PIECE[letter]}" x="{cx-glyph/2:.1f}" y="{cy-glyph/2:.1f}" '
                  f'width="{glyph:.1f}" height="{glyph:.1f}"/>')
     return "".join(parts)
 

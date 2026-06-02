@@ -26,7 +26,7 @@ Each player has four pieces: a **Lion**, a **Giraffe**, an **Elephant**, and a *
 <!-- assets generated in repo at assets/diagrams/; copy to blog /assets/posts/dobutsu-shogi/ on publish -->
 <figure style="margin:1.5rem 0;text-align:center">
 <img src="/assets/posts/dobutsu-shogi/initial-position.svg" alt="Dōbutsu shōgi starting position on a 3 by 4 board" style="max-width:330px">
-<figcaption style="font-size:0.85em;color:#666;margin-top:4px">Starting position. The first player (bottom, ivory tiles pointing up) moves first; the second player (top, dark tiles pointing down) mirrors them. The dots on each piece mark the squares it can step to.</figcaption>
+<figcaption style="font-size:0.85em;color:#666;margin-top:4px">Starting position. The first player (bottom, ivory tiles) moves first; the second player (top, dark tiles) mirrors them. The dots on each piece mark the squares it can step to.</figcaption>
 </figure>
 
 Each piece moves one square per turn:
