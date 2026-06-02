@@ -21,13 +21,15 @@ This post covers what the solution turned up and why such a small board produces
 
 ## 1. The game
 
-Each player has four pieces: a **Lion**, a **Giraffe**, an **Elephant**, and a **Chick**, set up as mirror images of each other:
+Each player has four pieces: a **Lion**, a **Giraffe**, an **Elephant**, and a **Chick**, set up as mirror images of each other.
 
 <!-- assets generated in repo at assets/diagrams/; copy to blog /assets/posts/dobutsu-shogi/ on publish -->
 <figure style="margin:1.5rem 0;text-align:center">
 <img src="/assets/posts/dobutsu-shogi/initial-position.svg" alt="Dōbutsu shōgi starting position on a 3 by 4 board" style="max-width:330px">
 <figcaption style="font-size:0.85em;color:#666;margin-top:4px">Starting position. The first player (bottom, ivory tiles) moves first; the second player (top, dark tiles) mirrors them. The dots on each piece mark the squares it can step to.</figcaption>
 </figure>
+
+### Moves
 
 Each piece moves one square per turn:
 
@@ -41,9 +43,13 @@ Each piece moves one square per turn:
 <figcaption style="font-size:0.85em;color:#666;margin-top:4px">Each piece moves one step to a dotted square; a Chick that advances to the far row promotes to a Hen.</figcaption>
 </figure>
 
+### Winning
+
 Two ways to win: capture the opponent's Lion, or move a Lion into the far row and survive one turn there (a **Try**).
 
-A captured piece joins the captor's hand and can later be **dropped** onto any empty square as their own. Captured pieces switch sides rather than leaving the board. This is shogi's signature rule, the one chess lacks, and it's what keeps the game deep (more below).
+### Drops
+
+A captured piece joins the captor's hand and can later be **dropped** onto any empty square as their own. Captured pieces switch sides rather than leaving the board. This is shogi's signature rule, the one chess lacks.
 
 ---
 
