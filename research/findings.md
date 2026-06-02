@@ -1,0 +1,80 @@
+# Findings ledger — verified facts
+
+Every number here is sourced to Tanaka (2009) unless noted. Format: claim — value — source.
+If a claim isn't sourced, it belongs in `open-questions.md`, not here.
+
+## The result
+
+- **Game class** — two-player, zero-sum, perfect-information; every position has a definite
+  value (Win/Loss/Draw). — §abstract, §1
+- **Initial position value** — **gote (second player) wins**. — §4.1
+- **Plies to win from start** — **78**. — §abstract, §4.1, §5
+- **Solution method** — retrograde analysis (backward induction from terminal positions) over
+  all positions reachable from the start. — §abstract, §3.2
+- **Solve hardware/time** — 16 GB RAM, 2.6 GHz Opteron; enumeration ~19 min, retrograde
+  analysis ~5.5 hr. — §3.1, §3.2
+
+## Position counts (the disambiguation)
+
+- **Upper bound, all arrangements ignoring reachability** — **1,567,925,964** (Table 1 sum).
+  Broken out by pieces-in-hand: 0→638,668,800; 1→638,668,800; 2→242,161,920; 3→44,098,560;
+  4→4,134,240; 5→190,080; 6→3,564. — §2, Table 1
+  - 0-in-hand board count derivation: 132 × 180 × 112 × 240 = 638,668,800. — §2
+- **Reachable from initial position** — **246,803,167**. — §3.1
+- **Non-terminal reachable positions** — **99,485,568** (>half of reachable are terminal). — §3.1
+- **Non-terminal value split (side to move)** — win 56,474,473 / draw 2,682,700 / loss
+  40,328,395 (sums to 99,485,568 ✓). — §3.2
+
+> ⚠️ English Wikipedia reports 1,567,925,964 as "reachable positions." That is wrong: it's the
+> unreachable upper bound. Reachable = 246,803,167. This correction is a core article beat.
+
+## Structure / encoding
+
+- **Position encoding** — 60 bits: 48 (board, 4 bits × 12 squares, 11 states/square) + 12
+  (hands, 2 bits × 6) ; side-to-move fixed by symmetry; left-right mirror normalized to the
+  smaller 64-bit value. — §3.1
+- **Symmetries used** — turn symmetry (fix side to move; 180° rotate if needed) + left-right
+  mirror (≈ halves the work). — §2, §3.1
+
+## Other quantitative results
+
+- **Max distance-to-win, any position** — **173 plies** (Fig. 5). — §3.2
+- **Average branching (non-terminal)** — **9.435**; by value: win 10.63 / draw 8.82 / loss
+  7.81. — §4.2
+- **Max branching** — **38** (34 positions, all wins, Fig. 7). — §4.2
+- **Min branching** — non-terminal 0-legal-move positions exist but are unreachable → 0 in the
+  reachable set; stalemate never occurs in real play. — §4.2
+- **Zugzwang positions** — **≥ 21,839** (lower bound; 71 self-symmetric). — §4.3
+- **Enemy-zone chick-drop is the unique correct move** — **68 positions**; forbidding the move
+  changes 4,301 positions' values but not the initial position's (still 78 plies). — §4.4
+- **Tsume (mate) positions** — **17,213,997** total (~30% of wins); longest mate **23 plies**;
+  counts by length in Table 3 (translation doc). — §4.5
+
+## Opening lines (§4.1)
+
+Sente's 4 legal first moves and gote's winning replies:
+
+| Sente 1st move | Gote reply | Gote wins in |
+|---|---|---|
+| B2 Chick (capture) | 同ぞう (recapture, Elephant) | **76** plies (fastest loss for Sente) |
+| C3 Giraffe | A2 Giraffe | 78 |
+| C3 Lion | A2 Giraffe / B3 Chick | 78 |
+| A3 Lion | A2 Giraffe / B3 Chick / C2 Lion | 78 / 78 / 82 |
+
+> Note: capturing the chick **loses fastest** (76 < 78). Wikipedia's "best opening move is to
+> capture the chick" reads the sign backwards — verify exact wording before quoting.
+
+## Reconstructed initial setup (from §4.1 move list)
+
+- Sente (bottom): A4 Elephant, B4 Lion, C4 Giraffe, B3 Chick.
+- Gote (top): A1 Giraffe, B1 Lion, C1 Elephant, B2 Chick.
+- Confidence: high that giraffe is at C4 for sente (only setup consistent with "C3 giraffe"
+  being legal); exact A/C orientation vs Fig. 1 image is an open question.
+
+## External classification
+
+- **Solved-ness** — commonly called "**strongly solved**." Precise nuance: Tanaka solved all
+  positions *reachable from the start* (every position arising in real play has a known
+  optimal move). Some legal-but-unreachable positions (e.g. Fig. 4) were excluded. — derived;
+  state carefully in the article.
+- **Inventor** — Madoka Kitao (women's pro), 2008; piece art by Maiko Fujita. — §1

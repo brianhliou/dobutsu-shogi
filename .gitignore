@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# Editor / OS cruft
+*.swp
+*~
+.idea/
+.vscode/
+
+# Python (for future solver/experiment work)
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node (for a future interactive explorer)
+node_modules/
+dist/
+.next/
+
+# Large generated artifacts (tablebases etc.) — commit deliberately, not by default
+*.tb
+*.dtm
+*.bin
