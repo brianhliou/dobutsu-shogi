@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="258" height="324" viewBox="0 0 258 324" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+<rect width="258" height="324" fill="white"/>
+<rect x="30" y="30" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="96" y="30" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="162" y="30" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="30" y="96" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="96" y="96" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="162" y="96" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="30" y="162" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="96" y="162" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="162" y="162" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="30" y="228" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="96" y="228" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<rect x="162" y="228" width="66" height="66" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1.5"/>
+<text x="63.0" y="20" font-size="15" text-anchor="middle" fill="#7a6f55" font-weight="600">A</text>
+<text x="129.0" y="20" font-size="15" text-anchor="middle" fill="#7a6f55" font-weight="600">B</text>
+<text x="195.0" y="20" font-size="15" text-anchor="middle" fill="#7a6f55" font-weight="600">C</text>
+<text x="18" y="68.0" font-size="15" text-anchor="middle" fill="#7a6f55" font-weight="600">1</text>
+<text x="18" y="134.0" font-size="15" text-anchor="middle" fill="#7a6f55" font-weight="600">2</text>
+<text x="18" y="200.0" font-size="15" text-anchor="middle" fill="#7a6f55" font-weight="600">3</text>
+<text x="18" y="266.0" font-size="15" text-anchor="middle" fill="#7a6f55" font-weight="600">4</text>
+<polygon points="63.0,89.4 89.4,74.9 89.4,36.6 36.6,36.6 36.6,74.9" fill="#dde0e6" stroke="#3a3f48" stroke-width="2" stroke-linejoin="round"/><text x="63.0" y="72.4" font-size="27.7" font-weight="700" text-anchor="middle" fill="#1f242b">G</text>
+<polygon points="129.0,89.4 155.4,74.9 155.4,36.6 102.6,36.6 102.6,74.9" fill="#dde0e6" stroke="#3a3f48" stroke-width="2" stroke-linejoin="round"/><text x="129.0" y="72.4" font-size="27.7" font-weight="700" text-anchor="middle" fill="#1f242b">L</text>
+<polygon points="195.0,89.4 221.4,74.9 221.4,36.6 168.6,36.6 168.6,74.9" fill="#dde0e6" stroke="#3a3f48" stroke-width="2" stroke-linejoin="round"/><text x="195.0" y="72.4" font-size="27.7" font-weight="700" text-anchor="middle" fill="#1f242b">E</text>
+<polygon points="129.0,155.4 155.4,140.9 155.4,102.6 102.6,102.6 102.6,140.9" fill="#dde0e6" stroke="#3a3f48" stroke-width="2" stroke-linejoin="round"/><text x="129.0" y="138.4" font-size="27.7" font-weight="700" text-anchor="middle" fill="#1f242b">C</text>
+<polygon points="129.0,168.6 155.4,183.1 155.4,221.4 102.6,221.4 102.6,183.1" fill="#fbf4df" stroke="#4a3f28" stroke-width="2" stroke-linejoin="round"/><text x="129.0" y="204.4" font-size="27.7" font-weight="700" text-anchor="middle" fill="#2a2118">C</text>
+<polygon points="63.0,234.6 89.4,249.1 89.4,287.4 36.6,287.4 36.6,249.1" fill="#fbf4df" stroke="#4a3f28" stroke-width="2" stroke-linejoin="round"/><text x="63.0" y="270.4" font-size="27.7" font-weight="700" text-anchor="middle" fill="#2a2118">E</text>
+<polygon points="129.0,234.6 155.4,249.1 155.4,287.4 102.6,287.4 102.6,249.1" fill="#fbf4df" stroke="#4a3f28" stroke-width="2" stroke-linejoin="round"/><text x="129.0" y="270.4" font-size="27.7" font-weight="700" text-anchor="middle" fill="#2a2118">L</text>
+<polygon points="195.0,234.6 221.4,249.1 221.4,287.4 168.6,287.4 168.6,249.1" fill="#fbf4df" stroke="#4a3f28" stroke-width="2" stroke-linejoin="round"/><text x="195.0" y="270.4" font-size="27.7" font-weight="700" text-anchor="middle" fill="#2a2118">G</text>
+</svg>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="642" height="172" viewBox="0 0 642 172" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+<rect width="642" height="172" fill="white"/>
+<text x="73.0" y="38" font-size="14" text-anchor="middle" fill="#333" font-weight="600">Lion</text>
+<rect x="22" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="56" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="90" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="22" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="56" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="90" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="22" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="56" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="90" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<circle cx="39.0" cy="65.0" r="6" fill="#2b8a8a"/>
+<circle cx="73.0" cy="65.0" r="6" fill="#2b8a8a"/>
+<circle cx="107.0" cy="65.0" r="6" fill="#2b8a8a"/>
+<circle cx="39.0" cy="99.0" r="6" fill="#2b8a8a"/>
+<circle cx="107.0" cy="99.0" r="6" fill="#2b8a8a"/>
+<circle cx="39.0" cy="133.0" r="6" fill="#2b8a8a"/>
+<circle cx="73.0" cy="133.0" r="6" fill="#2b8a8a"/>
+<circle cx="107.0" cy="133.0" r="6" fill="#2b8a8a"/>
+<polygon points="73.0,86.1 85.9,93.2 85.9,111.9 60.1,111.9 60.1,93.2" fill="#fbf4df" stroke="#4a3f28" stroke-width="2" stroke-linejoin="round"/><text x="73.0" y="103.6" font-size="13.6" font-weight="700" text-anchor="middle" fill="#2a2118">L</text>
+<text x="197.0" y="38" font-size="14" text-anchor="middle" fill="#333" font-weight="600">Giraffe</text>
+<rect x="146" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="180" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="214" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="146" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="180" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="214" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="146" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="180" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="214" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<circle cx="197.0" cy="65.0" r="6" fill="#2b8a8a"/>
+<circle cx="197.0" cy="133.0" r="6" fill="#2b8a8a"/>
+<circle cx="163.0" cy="99.0" r="6" fill="#2b8a8a"/>
+<circle cx="231.0" cy="99.0" r="6" fill="#2b8a8a"/>
+<polygon points="197.0,86.1 209.9,93.2 209.9,111.9 184.1,111.9 184.1,93.2" fill="#fbf4df" stroke="#4a3f28" stroke-width="2" stroke-linejoin="round"/><text x="197.0" y="103.6" font-size="13.6" font-weight="700" text-anchor="middle" fill="#2a2118">G</text>
+<text x="321.0" y="38" font-size="14" text-anchor="middle" fill="#333" font-weight="600">Elephant</text>
+<rect x="270" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="304" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="338" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="270" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="304" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="338" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="270" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="304" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="338" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<circle cx="287.0" cy="65.0" r="6" fill="#2b8a8a"/>
+<circle cx="355.0" cy="65.0" r="6" fill="#2b8a8a"/>
+<circle cx="287.0" cy="133.0" r="6" fill="#2b8a8a"/>
+<circle cx="355.0" cy="133.0" r="6" fill="#2b8a8a"/>
+<polygon points="321.0,86.1 333.9,93.2 333.9,111.9 308.1,111.9 308.1,93.2" fill="#fbf4df" stroke="#4a3f28" stroke-width="2" stroke-linejoin="round"/><text x="321.0" y="103.6" font-size="13.6" font-weight="700" text-anchor="middle" fill="#2a2118">E</text>
+<text x="445.0" y="38" font-size="14" text-anchor="middle" fill="#333" font-weight="600">Chick</text>
+<rect x="394" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="428" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="462" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="394" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="428" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="462" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="394" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="428" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="462" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<circle cx="445.0" cy="65.0" r="6" fill="#2b8a8a"/>
+<polygon points="445.0,86.1 457.9,93.2 457.9,111.9 432.1,111.9 432.1,93.2" fill="#fbf4df" stroke="#4a3f28" stroke-width="2" stroke-linejoin="round"/><text x="445.0" y="103.6" font-size="13.6" font-weight="700" text-anchor="middle" fill="#2a2118">C</text>
+<text x="569.0" y="38" font-size="14" text-anchor="middle" fill="#333" font-weight="600">Hen</text>
+<rect x="518" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="552" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="586" y="48" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="518" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="552" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="586" y="82" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="518" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="552" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<rect x="586" y="116" width="34" height="34" fill="#f4ecd8" stroke="#8a7a55" stroke-width="1"/>
+<circle cx="569.0" cy="65.0" r="6" fill="#2b8a8a"/>
+<circle cx="535.0" cy="65.0" r="6" fill="#2b8a8a"/>
+<circle cx="603.0" cy="65.0" r="6" fill="#2b8a8a"/>
+<circle cx="535.0" cy="99.0" r="6" fill="#2b8a8a"/>
+<circle cx="603.0" cy="99.0" r="6" fill="#2b8a8a"/>
+<circle cx="569.0" cy="133.0" r="6" fill="#2b8a8a"/>
+<polygon points="569.0,86.1 581.9,93.2 581.9,111.9 556.1,111.9 556.1,93.2" fill="#fbf4df" stroke="#4a3f28" stroke-width="2" stroke-linejoin="round"/><text x="569.0" y="103.6" font-size="13.6" font-weight="700" text-anchor="middle" fill="#2a2118">H</text>
+</svg>
