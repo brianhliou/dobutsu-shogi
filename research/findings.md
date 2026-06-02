@@ -1,5 +1,9 @@
 # Findings ledger — verified facts
 
+**Primary source:** 田中哲朗 (Tetsuro Tanaka), "An Analysis of a Board Game 'Doubutsu Shogi'"
+(Japanese), IPSJ SIG Notes (情報処理学会研究報告), **Vol. 2009-GI-22, No. 3, pp. 1–8 (2009)**.
+NII permalink: <http://id.nii.ac.jp/1001/00062415/> . Single entry; no later journal version.
+
 Every number here is sourced to Tanaka (2009) unless noted. Format: claim — value — source.
 If a claim isn't sourced, it belongs in `open-questions.md`, not here.
 
@@ -13,6 +17,9 @@ If a claim isn't sourced, it belongs in `open-questions.md`, not here.
   all positions reachable from the start. — §abstract, §3.2
 - **Solve hardware/time** — 16 GB RAM, 2.6 GHz Opteron; enumeration ~19 min, retrograde
   analysis ~5.5 hr. — §3.1, §3.2
+- **Independent reproduction (2026-06-01)** — clausecker/dobutsu full tablebase (SHA dfcf133):
+  initial position `#-78` (gote win in 78 plies), chick-capture first move `#-76`; `validatetb`
+  exit 0; tablebase ~168 MB, <1 min, ~256 MB peak on Apple Silicon. — `reproduction.md`
 
 ## Position counts (the disambiguation)
 
@@ -25,8 +32,11 @@ If a claim isn't sourced, it belongs in `open-questions.md`, not here.
 - **Non-terminal value split (side to move)** — win 56,474,473 / draw 2,682,700 / loss
   40,328,395 (sums to 99,485,568 ✓). — §3.2
 
-> ⚠️ English Wikipedia reports 1,567,925,964 as "reachable positions." That is wrong: it's the
-> unreachable upper bound. Reachable = 246,803,167. This correction is a core article beat.
+> ⚠️ English Wikipedia states verbatim: *"there are 1,567,925,964 reachable positions in the
+> game."* That is wrong — per Table 1 it's the upper bound on **all arrangements ignoring
+> reachability**. Reachable = 246,803,167. This single, confirmed error is the core article
+> beat. (Wikipedia's opening-move and 78-ply facts are *correct* — scope the correction to the
+> position count only; don't overclaim.)
 
 ## Structure / encoding
 
@@ -61,20 +71,25 @@ Sente's 4 legal first moves and gote's winning replies:
 | C3 Lion | A2 Giraffe / B3 Chick | 78 |
 | A3 Lion | A2 Giraffe / B3 Chick / C2 Lion | 78 / 78 / 82 |
 
-> Note: capturing the chick **loses fastest** (76 < 78). Wikipedia's "best opening move is to
-> capture the chick" reads the sign backwards — verify exact wording before quoting.
+> Note: capturing the chick **loses fastest** (76 < 78). English Wikipedia states this
+> correctly ("...capturing the chick delays loss by only 76 plies"). The inverted "best
+> opening move = capture the chick" came from an AI search summary, **not** Wikipedia — do not
+> attribute that error to Wikipedia in the article.
 
 ## Reconstructed initial setup (from §4.1 move list)
 
 - Sente (bottom): A4 Elephant, B4 Lion, C4 Giraffe, B3 Chick.
 - Gote (top): A1 Giraffe, B1 Lion, C1 Elephant, B2 Chick.
-- Confidence: high that giraffe is at C4 for sente (only setup consistent with "C3 giraffe"
-  being legal); exact A/C orientation vs Fig. 1 image is an open question.
+- **Confirmed** by two independent sources: English Wikipedia ("Giraffe to the right of the
+  king, Elephant to the left") and the clausecker/dobutsu README board diagram (row 4 `ELG`,
+  row 1 `gle`). Both agree with the move-list reconstruction (bottom player's right = column
+  C → giraffe C4).
 
 ## External classification
 
-- **Solved-ness** — commonly called "**strongly solved**." Precise nuance: Tanaka solved all
+- **Solved-ness** — "**strongly solved**." Precise nuance: Tanaka's 2009 paper solved all
   positions *reachable from the start* (every position arising in real play has a known
-  optimal move). Some legal-but-unreachable positions (e.g. Fig. 4) were excluded. — derived;
-  state carefully in the article.
+  optimal move); some legal-but-unreachable positions (e.g. Fig. 4) were excluded. A full
+  tablebase engine — clausecker/dobutsu — achieves "perfect play from **any** position," i.e.
+  covers all legal positions (true strong solution). State both precisely in the article.
 - **Inventor** — Madoka Kitao (women's pro), 2008; piece art by Maiko Fujita. — §1

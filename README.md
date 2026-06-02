@@ -40,9 +40,12 @@ article/
 
 ## Status
 
-Foundation laid 2026-06-01. Primary source pulled and fully read; key results extracted and
-verified against the paper. Next: finalize the translation pass and resolve open questions
-(see `research/open-questions.md`).
+Foundation laid 2026-06-01. Primary source pulled and fully read; all numbers verified against
+the paper; citation, setup, and the Wikipedia-error scope pinned. **Solve independently
+reproduced** from the clausecker/dobutsu tablebase — initial position `#-78` (gote win in 78),
+chick-capture first move `#-76`, validation clean (see `research/reproduction.md`). Next:
+optional experiments (173-ply / chick-drop position queries; drops ablation) and drafting the
+article from `article/outline.md`. Open items in `research/open-questions.md`.
 
 ## The result, in one paragraph
 
@@ -57,5 +60,6 @@ best-selling shogi product in Japan.
 ## Canonical reference
 
 田中哲朗 (Tetsuro Tanaka), 「どうぶつしょうぎ」の完全解析 ("An Analysis of a Board Game
-'Doubutsu Shogi'"), IPSJ SIG Technical Report, SIG-GI (Game Informatics), 2009.
+'Doubutsu Shogi'", in Japanese), IPSJ SIG Notes (情報処理学会研究報告), Vol. 2009-GI-22, No. 3,
+pp. 1–8 (2009). NII: <http://id.nii.ac.jp/1001/00062415/> ·
 Author's page: <https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/dobutsushogi/>

@@ -10,11 +10,12 @@ reproducible from a fixed copy.
 - `sources/tanaka-2009-slides.pdf` — companion slide deck dated 2009-06-26. Japanese.
 - `tanaka-2009-translation.md` — full English translation + our annotations. **Start here.**
 
-## Citation (working — see open-questions.md to finalize)
+## Citation
 
 田中哲朗 (Tetsuro Tanaka), 「どうぶつしょうぎ」の完全解析
-("An Analysis of a Board Game 'Doubutsu Shogi'"),
-IPSJ SIG Technical Report, SIG-GI (Game Informatics), 2009.
+("An Analysis of a Board Game 'Doubutsu Shogi'", in Japanese),
+IPSJ SIG Notes (情報処理学会研究報告), **Vol. 2009-GI-22, No. 3, pp. 1–8 (2009)**.
+NII permalink: <http://id.nii.ac.jp/1001/00062415/>
 
 - Author's Dōbutsu Shōgi page: <https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/dobutsushogi/>
 - Author's publications: <https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/papers.html>

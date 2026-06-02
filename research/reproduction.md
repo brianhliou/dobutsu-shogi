@@ -1,0 +1,106 @@
+# Reproduction — independent confirmation of the solve
+
+We regenerated the complete Dōbutsu Shōgi tablebase from source and independently confirmed
+Tanaka's headline result. This is the article's "we re-ran it ourselves" credibility beat.
+
+**Result:** the initial position evaluates to **`#-78`** (side-to-move / Sente loses in 78
+plies → **gote wins in 78**), and capturing the chick on move 1 evaluates to **`#-76`** (loses
+faster). Both match Tanaka (2009) §4.1 to the ply.
+
+## What we used
+
+- **Engine/solver:** [clausecker/dobutsu](https://github.com/clausecker/dobutsu), a C engine
+  that builds a **comprehensive endgame tablebase for perfect play from any position** (a full
+  strong solution over all legal positions, not just reachable-from-start).
+- **Pinned commit:** `dfcf133355c80ccc85ae61b9c8ed864b316ac809`
+- **Machine:** Apple Silicon macOS; build with Apple `c99`/clang, brew `readline`, `xz`
+  (liblzma), `gettext`, `pkg-config`.
+- Clone lives at `external/clausecker-dobutsu/` (git-ignored; reproducible via the steps below).
+
+## Two macOS portability fixes
+
+1. **`pthread_barrier_*` shim.** Apple's libc omits the optional POSIX barrier API that
+   `tbgenerate.c` uses for parallel-round synchronization. We added
+   `research/repro/pthread_barrier_shim.h` (a standard phase-based barrier over mutex+cond) and
+   `#include`d it in `tbgenerate.c` after its system includes. No-op on platforms that already
+   provide barriers.
+2. **Explicit pkg-config flags.** The Makefile uses BSD-make `!=` shell assignments, which
+   macOS's GNU make 3.81 does not evaluate, so the readline/liblzma include+link flags came up
+   empty. We pass them on the make command line (overriding the dead `!=` lines) and point
+   `INTLCFLAGS/INTLLDFLAGS` at brew's gettext.
+
+## Exact steps
+
+```sh
+# from repo root
+git clone https://github.com/clausecker/dobutsu external/clausecker-dobutsu
+cd external/clausecker-dobutsu
+git checkout dfcf133355c80ccc85ae61b9c8ed864b316ac809
+
+# fix 1: barrier shim
+cp ../../research/repro/pthread_barrier_shim.h .
+#   then add `#include "pthread_barrier_shim.h"` near the top of tbgenerate.c
+#   (after #include <string.h>, before #include "dobutsutable.h")
+
+# fix 2: build with explicit flags
+export PKG_CONFIG_PATH="$(brew --prefix readline)/lib/pkgconfig:$(brew --prefix xz)/lib/pkgconfig:$PKG_CONFIG_PATH"
+GT="$(brew --prefix gettext)"
+make gentb dobutsu validatetb \
+  RLCFLAGS="$(pkg-config --cflags readline)" \
+  RLLDFLAGS="$(pkg-config --libs-only-L --libs-only-other readline)" \
+  RLLDLIBS="$(pkg-config --libs-only-l readline)" \
+  LZMACFLAGS="$(pkg-config --cflags liblzma)" \
+  LZMALDFLAGS="$(pkg-config --libs-only-L --libs-only-other liblzma)" \
+  LZMALDLIBS="$(pkg-config --libs-only-l liblzma)" \
+  INTLCFLAGS="-I$GT/include" INTLLDFLAGS="-L$GT/lib"
+
+# generate + validate the tablebase
+./gentb -j 8 dobutsu.tb           # ~168 MB, peak RSS ~256 MB, < 1 min on Apple Silicon
+./validatetb dobutsu.tb           # exit 0 == internally consistent
+
+# query the initial position
+printf 'show board\nshow eval\nshow lines\nexit\n' | DOBUTSU_TABLEBASE=./dobutsu.tb ./dobutsu
+```
+
+## Transcript (initial position)
+
+```
+=== validatetb dobutsu.tb -> exit 0 ===
+
+Loading tablebase... done
+1. show board
+  ABC
+ +---+
+1|gle|
+2| c |
+3| C |
+4|ELG| *
+ +---+
+1. show eval
+#-78
+1. show lines
+Gc4-c3 : #-78  (25.00%)
+Lb4-c3 : #-78  (25.00%)
+Lb4-a3 : #-78  (25.00%)
+Cb3xb2 : #-76  (24.99%)
+```
+
+## How this maps to the paper
+
+| Engine output | Meaning | Tanaka (2009) |
+|---|---|---|
+| `#-78` at the start | Sente (to move) loses in 78 plies | §4.1: gote win, 78 plies ✓ |
+| `Cb3xb2 : #-76` | chick capture loses in 76 (faster) | §4.1: chick capture → 76 ✓ |
+| `Gc4-c3 / Lb4-c3 / Lb4-a3 : #-78` | the other 3 first moves hold to 78 | §4.1: the 4 legal first moves ✓ |
+| `validatetb` exit 0 over the full base | a consistent strong solution | strongly solved ✓ |
+
+Notation: `#-N` = the player to move is mated in N plies (negative = losing); the four moves
+shown are Sente's only legal first moves, confirming the branching of 4 at the root.
+
+## Not yet reproduced (optional, see open-questions.md)
+
+- Independent confirmation of the 246,803,167 *reachable* count (clausecker counts all legal
+  positions, a different denominator — would need a reachable-only enumerator or to read the
+  paper's count as authoritative).
+- The 173-ply deepest win and the 68 chick-drop positions (queryable from this tablebase with
+  a small script via `setup`/`show eval` — a future experiment).

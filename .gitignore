@@ -20,7 +20,11 @@ node_modules/
 dist/
 .next/
 
+# Third-party solver clone (reproducible — see research/reproduction.md)
+external/
+
 # Large generated artifacts (tablebases etc.) — commit deliberately, not by default
 *.tb
+*.tb.xz
 *.dtm
 *.bin
