@@ -90,6 +90,11 @@ Beyond the headline result, a few things stand out:
 - **About 30% of won positions contain a forced mate**, and the mates stay short: the longest is 23 plies.
 
 <figure style="margin:1.5rem 0;text-align:center">
+<img src="/assets/posts/dobutsu-shogi/depth-profile.svg" alt="Log-scale bar chart of won positions by distance to win, decaying from about 10 million at 3 plies to 14 at 173 plies" style="max-width:700px">
+<figcaption style="font-size:0.85em;color:#666;margin-top:4px">Won positions by distance to win (log scale). Most resolve in a handful of moves; a thin tail reaches all the way to the 173-ply maximum.</figcaption>
+</figure>
+
+<figure style="margin:1.5rem 0;text-align:center">
 <img src="/assets/posts/dobutsu-shogi/position-chickdrop.svg" alt="A position whose only winning move is dropping a chick on c1" style="max-width:480px">
 <figcaption style="font-size:0.85em;color:#666;margin-top:4px">The only winning move is to drop the in-hand chick on c1 (circled), where it can never advance. Every other move loses.</figcaption>
 </figure>

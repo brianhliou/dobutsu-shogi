@@ -16,6 +16,7 @@ Usage: python3 tools/render_board.py   ->  assets/diagrams/*.svg
 
 import os
 import re
+import math
 
 CELL = 96
 MARGIN = 34
@@ -54,6 +55,7 @@ MOVES = {"L": ["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
 
 HERE = os.path.dirname(__file__)
 OUT = os.path.join(HERE, "..", "assets", "diagrams")
+DATA = os.path.join(HERE, "..", "data")
 EMOJI_DIR = os.path.join(OUT, "emoji")
 _emoji = {}
 
@@ -172,6 +174,41 @@ def render_moves(outpath):
     write(outpath, "\n".join(s))
 
 
+def render_depth_histogram(csvpath, outpath):
+    """Log-scale bar chart: won positions by distance-to-win. Reads dtm,count CSV."""
+    data = []
+    for line in open(csvpath):
+        line = line.strip()
+        if line and line[0].isdigit():
+            d, c = line.split(",")
+            data.append((int(d), int(c)))
+    ml, mr, mt, mb = 58, 16, 18, 40
+    pw, ph = 660, 240
+    w, h = ml + pw + mr, mt + ph + mb
+    dmin, dmax = data[0][0], data[-1][0]
+    hi = 7.2  # log10 axis top (max count ~1.3e7)
+    barw = pw / (len(data) + 2)
+    s = [svg_open(w, h), f'<rect width="{w}" height="{h}" fill="{BG}"/>']
+    ylabels = {1: "10", 2: "100", 3: "1K", 4: "10K", 5: "100K", 6: "1M", 7: "10M"}
+    for k in range(1, 8):
+        y = mt + ph * (1 - k / hi)
+        s.append(f'<line x1="{ml}" y1="{y:.1f}" x2="{ml+pw}" y2="{y:.1f}" stroke="#eee" stroke-width="1"/>')
+        s.append(f'<text x="{ml-8}" y="{y+4:.1f}" font-size="11" text-anchor="end" fill="{LABEL}">{ylabels[k]}</text>')
+    for d, c in data:
+        x = ml + (d - dmin) / (dmax - dmin) * pw
+        bh = ph * math.log10(c) / hi
+        s.append(f'<rect x="{x-barw*0.4:.1f}" y="{mt+ph-bh:.1f}" width="{barw*0.8:.1f}" '
+                 f'height="{bh:.1f}" fill="{DOT}"/>')
+    s.append(f'<line x1="{ml}" y1="{mt+ph}" x2="{ml+pw}" y2="{mt+ph}" stroke="#999" stroke-width="1"/>')
+    for d in (3, 25, 50, 75, 100, 125, 150, 173):
+        x = ml + (d - dmin) / (dmax - dmin) * pw
+        s.append(f'<line x1="{x:.1f}" y1="{mt+ph}" x2="{x:.1f}" y2="{mt+ph+4}" stroke="#999" stroke-width="1"/>')
+        s.append(f'<text x="{x:.1f}" y="{mt+ph+18}" font-size="11" text-anchor="middle" fill="{LABEL}">{d}</text>')
+    s.append(f'<text x="{ml+pw/2:.1f}" y="{h-3}" font-size="12" text-anchor="middle" fill="#555">distance to win (plies)</text>')
+    s.append("</svg>")
+    write(outpath, "\n".join(s))
+
+
 def parse_posstring(code):
     parts = code.split("/")
     pieces = []
@@ -212,6 +249,7 @@ INITIAL = [
 if __name__ == "__main__":
     render_position(INITIAL, os.path.join(OUT, "initial-position.svg"))
     render_moves(os.path.join(OUT, "piece-moves.svg"))
+    render_depth_histogram(os.path.join(DATA, "depth-profile.csv"), os.path.join(OUT, "depth-profile.svg"))
     # positions found by tools/find_positions.c scanning the tablebase
     render_from_posstring("S/cgl/--e/--L/c-G/E", os.path.join(OUT, "position-173ply.svg"))
     render_from_posstring("S/---/lc-/Eg-/GEL/C", os.path.join(OUT, "position-chickdrop.svg"),
