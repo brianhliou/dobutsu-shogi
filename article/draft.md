@@ -5,11 +5,11 @@ date: 2026-06-01
 description: "Dōbutsu shōgi, a children's shogi variant, is strongly solved: the second player wins in 78 plies. The results of the solve, and why one rule makes a tiny board so deep."
 ---
 
-<!-- DRAFT: restructured to 5 sections. -->
+<!-- DRAFT: 4 sections. Strip HTML comments on publish. -->
 
-Dōbutsu shōgi ("animal chess") is a shogi variant on a 3×4 board with eight pieces, designed in 2008 by professional player Madoka Kitao to teach shogi to children.
+Dōbutsu shōgi ("animal chess") is a children's shogi game on a 3×4 board with eight pieces. It has been completely solved: with perfect play, the player who moves first loses.
 
-In 2009, Tetsuro Tanaka computed the exact value of every reachable position. **With perfect play the second player wins, in 78 plies; the first player to move loses.**
+A professional shogi player, Madoka Kitao, designed it in 2008 to teach the game to children. In 2009, Tetsuro Tanaka computed the exact value of every reachable position. **The second player wins, in 78 plies.**
 
 This post covers what the solution turned up and why such a small board produces a deep game. The depth traces to one rule from shogi that most small abstract games omit: captured pieces return to play.
 
@@ -38,12 +38,12 @@ Each piece moves one square per turn:
 
 <figure style="margin:1.5rem 0;text-align:center">
 <img src="/assets/posts/dobutsu-shogi/piece-moves.svg" alt="How each piece moves: dots mark the squares it can step to" style="max-width:560px">
-<figcaption style="font-size:0.85em;color:#666;margin-top:4px">Each piece moves one step to a dotted square; the Chick promotes to a Hen on the far row.</figcaption>
+<figcaption style="font-size:0.85em;color:#666;margin-top:4px">Each piece moves one step to a dotted square; a Chick that advances to the far row promotes to a Hen.</figcaption>
 </figure>
 
 Two ways to win: capture the opponent's Lion, or move a Lion into the far row and survive one turn there (a **Try**).
 
-A captured piece joins the captor's hand and can later be **dropped** onto any empty square as their own. Captured pieces switch sides rather than leaving the board. Chess has no equivalent: this is shogi's signature rule, and it's what keeps the game deep (more below).
+A captured piece joins the captor's hand and can later be **dropped** onto any empty square as their own. Captured pieces switch sides rather than leaving the board. This is shogi's signature rule, the one chess lacks, and it's what keeps the game deep (more below).
 
 ---
 
