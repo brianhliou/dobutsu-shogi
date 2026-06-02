@@ -57,6 +57,22 @@ Reddit/HN/YouTube narrative spike drives day-one traffic; SEO long-tail is a bon
 
 Beats 6 and 8 are the differentiators only we can write; 8 is the centerpiece.
 
+## Structure (locked 2026-06-02)
+
+The beat list above is the original sketch; `draft.md` is canonical (now 4 results-first
+sections). Two decisions reshape the final layout:
+
+- **Explorer-led.** The interactive tablebase explorer is the marquee artifact and the hook,
+  so it leads the post (top embed, Gobblet-style). The §3 showcase positions become
+  *explore-this-position* links into it. Implement once the explorer ships.
+- **Companion build post.** The from-scratch tablebase (retrograde analysis, encoding, Rust,
+  WASM) gets its own writeup, not folded back into this explainer (deliberately trimmed of
+  methodology). This article = explainer + explorer; companion = the build.
+- **Publish timing.** Polish the text now, but align the public launch with the explorer
+  shipping. Don't launch the marquee piece without its marquee artifact.
+- When our tablebase exists, update §2's reproduction line: "the tablebase I built reproduces
+  this, cross-checked against clausecker (the known solution)."
+
 ## Core contributions
 
 - First rigorous **English exposition** of Tanaka (2009).
@@ -73,27 +89,27 @@ Beats 6 and 8 are the differentiators only we can write; 8 is the centerpiece.
 ## Diagrams & widgets
 
 Tablebase is the source of truth for every annotation (best move, exact value, distance-to-
-mate). Ship in tiers:
+mate). **Decision (2026-06-02): build our own tablebase** (Rust greenfield), validated against
+clausecker as an oracle, and make **one explorer that *is* the tablebase** — a full probe: play
+from any position, with perfect-move + exact-distance display. (The earlier W1/W2 split
+collapses; no toy opening-subset, the explorer exposes the whole solve.) Delivery: WASM
+client-side if the table compresses small enough, else a thin probe API.
 
-- **Static diagrams (with article).** Tiny bespoke SVG renderer for the 3×4 board + our **own**
-  piece glyphs, positions generated from the tablebase with exact values baked in. Render:
-  initial position, a zugzwang, the chick-drop-only-win, the 173-ply position, a mate example,
-  plus a retrograde-analysis explainer graphic.
-- **W1 — opening explorer (with article, zero hosting).** Precompute a small JSON of positions
-  within ~N plies of the start (exact tablebase values); client-side renderer; click a move →
-  perfect move highlighted + exact distance. Provably perfect within the curated tree.
-- **W2 — perfect-play probe (stretch; the real linkable asset).** Wrap clausecker's `dobutsu`
-  (`setup` → `show eval`/`show lines`) behind a tiny API → "play the perfect engine / paste any
-  position, get its exact value + distance." No public hosted Dōbutsu tablebase exists — this
-  is the novel artifact.
-- Fairy-Stockfish (WASM) only if we later want a beatable free-play opponent without a server.
-  It *searches*, it doesn't *solve* — heuristic-strong, not proven; off-thesis for annotations.
+- **Static diagrams (done).** Bespoke SVG renderer + Twemoji glyphs: initial position, movement
+  legend, chick-drop, 173-ply. Stay as fallback / social-card images.
+- **The explorer (the marquee artifact).** Leads the post (top embed). The §3 showcase
+  positions become *explore-this-position* links into it. No public hosted Dōbutsu tablebase
+  exists; this is the novel public contribution.
+- Fairy-Stockfish (WASM) is *not* used: it searches, not solves; off-thesis for a solved-game
+  explorer.
 
 ## Other contributions (beyond the prose)
 
-- The hosted **perfect-play probe / explorer** (W2) — doesn't exist anywhere.
-- A curated **position dataset** (JSON): the 78-ply line, the 173-ply position, the 68 chick-
-  drop positions, sample zugzwangs — publishable + powers the diagrams/widgets.
+- **Our own from-scratch tablebase** (Rust), validated position-by-position against clausecker.
+  Original engineering; gets its own companion writeup (see Structure).
+- **The interactive explorer** — a UI over that tablebase. No public one exists.
+- A curated **position dataset** (JSON): the 78-ply line, the 173-ply and chick-drop positions,
+  sample zugzwangs — publishable + powers the explorer/diagrams.
 - The **English exposition** of Tanaka (2009).
 - Quietly submit the **correct position count to Wikipedia** with the primary-source citation
   (improves the commons; a credibility signal, not the article's hook).
