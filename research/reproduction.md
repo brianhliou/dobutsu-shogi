@@ -97,10 +97,31 @@ Cb3xb2 : #-76  (24.99%)
 Notation: `#-N` = the player to move is mated in N plies (negative = losing); the four moves
 shown are Sente's only legal first moves, confirming the branching of 4 at the root.
 
-## Not yet reproduced (optional, see open-questions.md)
+## Position scan (tools/find_positions.c)
 
-- Independent confirmation of the 246,803,167 *reachable* count (clausecker counts all legal
-  positions, a different denominator — would need a reachable-only enumerator or to read the
-  paper's count as authoritative).
-- The 173-ply deepest win and the 68 chick-drop positions (queryable from this tablebase with
-  a small script via `setup`/`show eval` — a future experiment).
+A scanner over the full tablebase (iteration modelled on `validate_tablebase`) confirms two
+more of the paper's results and extracts showcase positions for the article:
+
+- **Max distance-to-win = 173 plies**, matching the paper exactly (14 positions reach it).
+- **Only-move = un-advanceable chick drop: 64 positions** (41 wins), close to Tanaka's 68. The
+  small gap is expected: clausecker covers all legal positions (not just reachable), and uses a
+  position-based repetition rule and a +1-ply terminal convention.
+- Scanned 116,734,644 non-terminal positions (clausecker's all-legal count; cf. Tanaka's
+  99,485,568 reachable non-terminal).
+
+Showcase positions, rendered into `assets/diagrams/`:
+
+```
+173-ply win        S/cgl/--e/--L/c-G/E
+chick-drop-only    S/---/lc-/Eg-/GEL/C   (only winning move: drop the chick on c1)
+```
+
+Build (inside the clone): `cp ../../tools/find_positions.c .`, compile with the liblzma cflags,
+link with `tbaccess.o poscode.o moves.o position.o notation.o validation.o unmoves.o` and
+`-llzma`, then `./find_positions dobutsu.tb` (~30 s).
+
+## Not yet reproduced (optional)
+
+- Independent confirmation of the 246,803,167 *reachable* count: clausecker counts all legal
+  positions (a different denominator), so this would need a reachable-only enumerator. The
+  paper is authoritative for the reachable figure.

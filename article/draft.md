@@ -84,6 +84,16 @@ A few results stand out:
 - **Zugzwang is common.** The opening isn't a special case: at least 21,839 positions are traps where moving loses but passing, if it were allowed, would hold.
 - **About 30% of won positions contain a forced mate**, and the mates stay short: the longest is 23 plies.
 
+<figure style="margin:1.5rem 0;text-align:center">
+<img src="/assets/posts/dobutsu-shogi/position-chickdrop.svg" alt="A position whose only winning move is dropping a chick on c1" style="max-width:430px">
+<figcaption style="font-size:0.85em;color:#666;margin-top:4px">The only winning move is to drop the in-hand chick on c1 (circled), where it can never advance. Every other move loses.</figcaption>
+</figure>
+
+<figure style="margin:1.5rem 0;text-align:center">
+<img src="/assets/posts/dobutsu-shogi/position-173ply.svg" alt="A position that is a forced win in 173 plies" style="max-width:380px">
+<figcaption style="font-size:0.85em;color:#666;margin-top:4px">The deepest forced win in the game: the side to move (warm pieces) wins in 173 plies, though down material.</figcaption>
+</figure>
+
 ---
 
 ## 4. Why a tiny board runs deep

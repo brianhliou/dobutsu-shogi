@@ -10,9 +10,10 @@ prose. Resolved items drop into the log at the bottom (with their resolution).
       counts *all legal* positions (a different denominator), so it doesn't directly reproduce
       the reachable figure. Would need a reachable-only enumerator, or treat the paper as
       authoritative for this number. Lower priority.
-- [ ] **Query the 173-ply deepest win and the 68 chick-drop positions** from our tablebase via
-      a small script (`setup` a position → `show eval`). Confirms two more paper claims and
-      makes great article diagrams. The tablebase to do this is already built.
+- [x] **Query the 173-ply deepest win and the chick-drop positions** — done via
+      `tools/find_positions.c`. Confirmed max-dtm = 173 (14 positions); found 64 only-move
+      chick-drops (cf. Tanaka's 68). Both rendered into `assets/diagrams/`. See
+      `research/reproduction.md`.
 - [ ] **Drops ablation, quantified.** Tanaka shows forbidding *enemy-zone chick-drops* changes
       4,301 positions. The bigger design question (from the chess note): how much shallower is
       the game with *no drop rule at all*? Our own experiment — needs a modified solver.
