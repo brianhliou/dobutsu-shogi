@@ -108,6 +108,14 @@ more of the paper's results and extracts showcase positions for the article:
   position-based repetition rule and a +1-ply terminal convention.
 - Scanned 116,734,644 non-terminal positions (clausecker's all-legal count; cf. Tanaka's
   99,485,568 reachable non-terminal).
+- **Material isn't destiny:** in 9,753,503 won positions (17.5% of wins) the side to move
+  wins while controlling fewer of the eight pieces than the opponent.
+- **Forcing:** 17,753,131 won positions (~32%) have exactly one winning move; the rest offer
+  more than one. (Full distribution in the scanner output.)
+- **Depth profile:** won positions by distance-to-win decay from ~13M at dtm 3 to 14 at dtm
+  173; about four in five finish within 15 plies. (Full histogram in the scanner output.)
+- **Perfect game:** the 78-ply principal variation from the start (second player captures the
+  lion on ply 78) is saved to `data/perfect-game.txt`.
 
 Showcase positions, rendered into `assets/diagrams/`:
 

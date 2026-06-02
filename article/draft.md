@@ -83,8 +83,9 @@ The full solution, in numbers:
 
 Beyond the headline result, a few things stand out:
 
-- **The longest forced win is 173 plies.** The opening's 78 is far from the worst case; somewhere in the tree sits a won position that takes 173 plies to finish.
+- **Wins finish fast, with a long tail.** Most won positions end within 15 plies; the deepest forced win runs 173 plies (far past the opening's 78), reached by only 14 positions.
 - **In 68 positions, the only winning move is to drop a chick where it can't move.** A chick on the opponent's back row has no square ahead of it, so the drop barely changes anything, close to passing a turn. Yet in these 68 positions every other move loses, and that near-pass is the one that wins.
+- **Often only one move wins.** In about a third of won positions a single move keeps the win; every other move loses it.
 - **Zugzwang is common.** The opening isn't a special case: at least 21,839 positions are traps where moving loses but passing, if it were allowed, would hold.
 - **About 30% of won positions contain a forced mate**, and the mates stay short: the longest is 23 plies.
 
@@ -102,11 +103,9 @@ Beyond the headline result, a few things stand out:
 
 ## 4. Why a tiny board runs deep
 
-Most abstract games simplify as they go. Captures remove material, the board empties, and the endgame is thinner than the middlegame. Shrinking such a game to a tiny board tends to make it shallow: small minichess variants often turn into quick draws once the pieces trade off.
+In most games material only drains away. Captures thin the board, the endgame is simpler than the opening, and a smaller board means a shorter game; minichess variants tend to fizzle into draws.
 
-Drops break that pattern. A captured piece returns to play in the captor's hand, switching owner rather than leaving the game. Material never drains away, threats keep regenerating, and the position stays sharp down to the last move. That is how a 3×4 board with eight pieces holds nearly 247 million reachable positions and a 173-ply forced win.
-
-Tanaka reaches the same conclusion: the complexity on so small a board reflects the strength of the drop rule, together with well-chosen piece moves and starting setup. Dōbutsu shōgi keeps shogi's defining mechanic and shrinks everything around it, which is what separates it from a flat minichess.
+Drops invert that. A captured piece comes back in the captor's hand, so the eight pieces keep circulating instead of disappearing, and the board never simplifies. It shows in the numbers: in roughly one in six won positions, the side to move wins despite having fewer pieces, so a material lead guarantees nothing here.
 
 ---
 
