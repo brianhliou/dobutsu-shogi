@@ -174,6 +174,46 @@ impl Position {
         p.turn = me.flip();
         p
     }
+
+    /// Is `sq` attacked by any of `by`'s pieces on the board (one step away)?
+    pub fn is_attacked(&self, sq: u8, by: Owner) -> bool {
+        let (tr, tf) = (rank(sq), file(sq));
+        for psq in 0..12u8 {
+            if let Some((pc, o)) = self.board[psq as usize] {
+                if o != by {
+                    continue;
+                }
+                let (dr, df) = (tr - rank(psq), tf - file(psq));
+                if dirs(pc, by).iter().any(|&(a, b)| a == dr && b == df) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    /// Does this move win on the spot — capturing the enemy lion, or a (safe)
+    /// Try with one's own lion onto the enemy back rank? Such moves have no
+    /// successor position; the game ends.
+    pub fn is_terminal_win_move(&self, m: &Move) -> bool {
+        if m.from.is_none() {
+            return false;
+        }
+        if m.capture {
+            if let Some((Piece::Lion, _)) = self.board[m.to as usize] {
+                return true;
+            }
+        }
+        // a Try wins only if the lion reaches the enemy back rank on a safe (unattacked) square
+        m.piece == Piece::Lion
+            && rank(m.to) == self.turn.enemy_back_rank()
+            && !self.is_attacked(m.to, self.turn.flip())
+    }
+
+    /// The side to move wins immediately (some move captures the lion or Tries safely).
+    pub fn is_immediate_win(&self) -> bool {
+        self.moves().iter().any(|m| self.is_terminal_win_move(m))
+    }
 }
 
 fn piece_char(pc: Piece) -> char {

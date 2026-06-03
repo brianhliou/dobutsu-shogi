@@ -8,14 +8,18 @@ with drops disabled) that the article's §4 thesis rests on.
 ## Status
 
 - **Rules engine — done.** Move generation (steps + drops), make-move (captures to
-  hand, chick promotion on advance, Try/lion-capture semantics left to the solver),
-  and clausecker-format position strings. Validated against the oracle on the opening
-  (`cargo test`): the four first moves and their resulting positions match byte-for-byte.
+  hand, chick promotion on advance), Try/lion-capture terminal detection, and
+  clausecker-format position strings.
+- **Bulk oracle diff — done.** `cargo run --release --bin oracle_diff` BFS-checks
+  **200,000 positions against clausecker's probe: 0 mismatches.** This surfaced the Try
+  rule: a lion reaching the enemy back rank wins only on an *unattacked* square; onto an
+  attacked square it is a normal (losing) move. Positions with the lions adjacent or a
+  lion ascended are resolution positions clausecker doesn't store standalone — valid as
+  children, skipped as probe inputs.
 
 ## Roadmap
 
-1. Bulk oracle diff: feed many positions through both `dobutsu-moves` and clausecker's
-   probe, assert identical move/child sets.
+1. ~~Bulk oracle diff~~ — **done** (200k positions, 0 mismatches).
 2. Enumerate reachable positions from the start.
 3. Retrograde analysis → distance-to-mate for every position; validate the whole table
    against clausecker.
