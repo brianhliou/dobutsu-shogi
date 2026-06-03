@@ -6,44 +6,61 @@
 <title>Dōbutsu Shōgi tablebase explorer</title>
 <style>
   :root {
-    --ivory:#fbf5e6; --slate:#373d47; --board:#f3e7c6; --line:#cbb98a;
+    --ink:#1f2328; --muted:#6b7280;
     --win:#2e7d32; --winbg:#eaf4ea; --loss:#c0392b; --lossbg:#fbecea;
-    --draw:#6b7280; --drawbg:#f1f2f4; --ink:#1a1a1a; --muted:#6b7280;
+    --draw:#6b7280; --drawbg:#f1f2f4; --accent:#d98a2b;
+    --sente:#fbf5e6; --sente-line:#6f5d33; --gote:#373d47; --gote-line:#20252d;
   }
   * { box-sizing:border-box; }
   body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; color:var(--ink);
-         margin:24px auto; max-width:780px; padding:0 16px; line-height:1.5; }
+         margin:24px auto; max-width:880px; padding:0 16px; line-height:1.5; }
   h1 { font-size:1.3rem; margin:0 0 2px; }
   .sub { color:var(--muted); font-size:.85rem; margin-bottom:16px; }
   .controls { margin:0 0 14px; }
-  button { font:inherit; padding:5px 12px; margin-right:8px; border:1px solid #ccc;
-           background:#fff; border-radius:6px; cursor:pointer; }
+  button { font:inherit; padding:5px 12px; margin-right:8px; border:1px solid #d4d4d8;
+           background:#fff; border-radius:7px; cursor:pointer; }
   button:hover { background:#f3f3f3; }
   .wrap { display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start; }
-  .left { flex:0 0 auto; }
-  .hands { font-size:.85rem; color:var(--muted); margin-top:8px; min-height:24px; }
-  .hands img { width:22px; vertical-align:middle; cursor:grab; -webkit-user-drag:none; user-select:none; }
-  #board { touch-action:none; cursor:grab; }
-  #board:active { cursor:grabbing; }
+  .left { flex:0 0 auto; width:344px; }
 
-  .panel { flex:1 1 280px; min-width:260px; border:1px solid #e7e7ea; border-radius:10px;
-           overflow:hidden; }
-  .verdict { padding:12px 14px; font-weight:700; font-size:1.05rem; display:flex;
+  .tray { display:flex; align-items:center; gap:7px; min-height:46px; padding:5px 10px;
+          border:1.5px solid #e6e2d6; border-radius:10px; background:#f8f5ec; transition:border-color .15s,box-shadow .15s; }
+  .tray + .board-wrap { margin-top:8px; }
+  .board-wrap + .tray { margin-top:8px; }
+  .tray.active { border-color:var(--accent); box-shadow:0 0 0 3px rgba(217,138,43,.16); }
+  .traylbl { font-size:.72rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
+             color:#9a8a62; margin-right:4px; }
+  .chip { display:inline-flex; align-items:center; gap:2px; padding:3px 7px 3px 4px;
+          border-radius:8px; border:1.5px solid var(--sente-line); background:var(--sente);
+          cursor:grab; user-select:none; }
+  .chip.gote { background:var(--gote); border-color:var(--gote-line); color:#eef2f8; }
+  .chip img { width:24px; height:24px; pointer-events:none; -webkit-user-drag:none; }
+  .chip .cnt { font-size:.78rem; font-weight:700; }
+  .tray .empty { color:#b9b3a4; font-size:.9rem; }
+
+  #board { display:block; width:344px; height:auto; touch-action:none; }
+  #board image, #board .pc { pointer-events:none; }
+  #board.grab { cursor:grab; }
+  #board.grab:active { cursor:grabbing; }
+
+  .panel { flex:1 1 280px; min-width:264px; border:1px solid #e7e7ea; border-radius:12px;
+           overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .verdict { padding:13px 16px; font-weight:700; font-size:1.06rem; display:flex;
              align-items:baseline; gap:8px; border-left:5px solid var(--draw); }
   .verdict small { font-weight:500; color:var(--muted); font-size:.8rem; }
   .verdict.win  { background:var(--winbg);  border-left-color:var(--win); }
   .verdict.loss { background:var(--lossbg); border-left-color:var(--loss); }
   .verdict.draw { background:var(--drawbg); border-left-color:var(--draw); }
-  .moves { max-height:460px; overflow-y:auto; }
+  .moves { max-height:472px; overflow-y:auto; }
   .grouphdr { font-size:.72rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-              color:#fff; padding:4px 14px; }
+              color:#fff; padding:4px 16px; }
   .grouphdr.win  { background:var(--win); }
   .grouphdr.loss { background:var(--loss); }
   .grouphdr.draw { background:var(--draw); }
   .move { display:flex; align-items:center; justify-content:space-between; gap:10px;
-          padding:7px 14px; border-bottom:1px solid #f1f1f3; cursor:pointer; font-size:.95rem; }
+          padding:7px 16px; border-bottom:1px solid #f1f1f3; cursor:pointer; font-size:.95rem; }
   .move:hover { background:#faf7ef; }
-  .move.dead { cursor:default; opacity:.85; }
+  .move.dead { cursor:default; }
   .move .mv { font-family:ui-monospace,Menlo,monospace; }
   .badge { font-size:.78rem; font-weight:700; padding:2px 9px; border-radius:11px;
            white-space:nowrap; min-width:34px; text-align:center; }
@@ -55,33 +72,43 @@
 </head>
 <body>
   <h1>Dōbutsu Shōgi tablebase explorer</h1>
-  <div class="sub">Every legal move with its result under perfect play. Click a move to follow it.</div>
+  <div class="sub">Every legal move with its result under perfect play. Drag a piece or click a move to follow it.</div>
   <div class="controls">
     <button id="reset">↺ Reset</button>
     <button id="back">← Back</button>
   </div>
   <div class="wrap">
     <div class="left">
-      <svg id="board" width="300" height="384" viewBox="0 0 300 384"></svg>
-      <div class="hands" id="hands"></div>
+      <div class="tray" id="trayTop"></div>
+      <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg></div>
+      <div class="tray" id="trayBottom"></div>
     </div>
     <div class="panel">
       <div class="verdict" id="verdict">…</div>
       <div class="moves" id="moves"></div>
     </div>
   </div>
-  <div class="note">Backed by a complete endgame tablebase. Animal glyphs: Twemoji (CC-BY 4.0).</div>
+  <div class="note">Backed by our own complete endgame tablebase. The dots on each piece show how it moves.
+    Animal glyphs: Twemoji (CC-BY 4.0).</div>
 
 <script>
 const INITIAL = "S/gle/-c-/-C-/ELG/-";
-const CELL = 84, MX = 24, MY = 24;
+const CELL = 96, MX = 26, MY = 24, SVGW = 326, SVGH = 422;
 const PIECE = {C:"chick", G:"giraffe", E:"elephant", L:"lion", R:"hen"};
 const FILES = ["a","b","c"];
+const DIRS = {N:[0,-1], S:[0,1], E:[1,0], W:[-1,0], NE:[1,-1], NW:[-1,-1], SE:[1,1], SW:[-1,1]};
+// step directions in a piece's own frame (N = toward the opponent's side)
+const MOVES = {
+  L:["N","NE","E","SE","S","SW","W","NW"], G:["N","E","S","W"],
+  E:["NE","SE","SW","NW"], C:["N"], R:["N","NE","NW","E","W","S"]};
+
 let history = [INITIAL];
-let hoverTo = null;
-let curParsed = null;      // parsed current position (for board re-renders during drag)
-let byBoard = {}, byDrop = {}; // drag-target -> move
-let drag = null;           // {kind:'board',from} | {kind:'hand',piece}
+let curParsed = null;          // parsed current position
+let byBoard = {}, byDrop = {}; // drag-target key -> move
+let drag = null;               // {kind:'board',from} | {kind:'hand',piece}
+let dragTargets = [];          // [{col,row}] legal destinations for the dragged piece
+let hoverTo = null;            // square under the pointer / hovered move destination
+let lastMove = null;           // {from:{col,row}|null, to:{col,row}}
 
 function parsePos(pos) {
   const parts = pos.split("/");
@@ -103,34 +130,133 @@ function destOf(mv) {
   const m = mv.match(/([abc])([1-4])$/);
   return m ? { col: FILES.indexOf(m[1]), row: parseInt(m[2], 10) - 1 } : null;
 }
+function moveSquares(mv) {
+  const piece = mv[0];
+  if (mv[1] === "*") {
+    const t = mv.slice(2, 4);
+    return { from: null, piece, to: { col: FILES.indexOf(t[0]), row: +t[1] - 1 } };
+  }
+  const f = mv.slice(1, 3);
+  const core = mv.endsWith("+") ? mv.slice(0, -1) : mv;
+  const t = core.slice(-2);
+  return { from: { col: FILES.indexOf(f[0]), row: +f[1] - 1 }, piece,
+           to: { col: FILES.indexOf(t[0]), row: +t[1] - 1 } };
+}
+
+function defs() {
+  return `<defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ddf1fa"/><stop offset="1" stop-color="#cde7f3"/></linearGradient>
+    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9ecba"/><stop offset="1" stop-color="#c4dd9d"/></linearGradient>
+    <filter id="tsh" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="1.4" stdDeviation="1.4" flood-color="#000" flood-opacity="0.32"/></filter>
+    <filter id="bsh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.20"/></filter>
+    <clipPath id="bclip"><rect x="${MX}" y="${MY}" width="${3*CELL}" height="${4*CELL}" rx="9"/></clipPath>
+  </defs>`;
+}
+
+function cloud(cx, cy, s) {
+  return `<g fill="#fff" opacity="0.95">
+    <ellipse cx="${cx}" cy="${cy}" rx="${26*s}" ry="${15*s}"/>
+    <ellipse cx="${cx-22*s}" cy="${cy+5*s}" rx="${17*s}" ry="${11*s}"/>
+    <ellipse cx="${cx+22*s}" cy="${cy+5*s}" rx="${18*s}" ry="${12*s}"/>
+    <ellipse cx="${cx+2*s}" cy="${cy-8*s}" rx="${13*s}" ry="${9*s}"/></g>`;
+}
+
+function pieceTile(cx, cy, letter, owner) {
+  const half = CELL * 0.40, glyph = CELL * 0.50, up = owner === "sente";
+  const fill = up ? "var(--sente)" : "var(--gote)";
+  const stroke = up ? "var(--sente-line)" : "var(--gote-line)";
+  const dotc = up ? "#7a4a2a" : "#e9eef6";
+  let p = `<rect class="pc" x="${(cx-half).toFixed(1)}" y="${(cy-half).toFixed(1)}" width="${(2*half).toFixed(1)}" `
+        + `height="${(2*half).toFixed(1)}" rx="${(half*0.22).toFixed(1)}" fill="${fill}" stroke="${stroke}" `
+        + `stroke-width="2" filter="url(#tsh)"/>`;
+  const sign = up ? 1 : -1, rr = half * 0.80, dr = half * 0.10;
+  for (const d of (MOVES[letter] || [])) {
+    const [ux, uy] = DIRS[d];
+    p += `<circle class="pc" cx="${(cx+sign*ux*rr).toFixed(1)}" cy="${(cy+sign*uy*rr).toFixed(1)}" r="${dr.toFixed(1)}" fill="${dotc}"/>`;
+  }
+  p += `<image href="/emoji/${PIECE[letter]}.svg" x="${(cx-glyph/2).toFixed(1)}" y="${(cy-glyph/2).toFixed(1)}" width="${glyph.toFixed(1)}" height="${glyph.toFixed(1)}"/>`;
+  return p;
+}
 
 function renderBoard(parsed) {
   const occ = {};
   parsed.cells.forEach(c => occ[c.row * 3 + c.col] = c);
-  let s = "";
+  const cx = c => MX + c * CELL + CELL / 2, cy = r => MY + r * CELL + CELL / 2;
+  let s = defs();
+
+  // lifted board card + field zones (clipped to rounded board)
+  s += `<rect x="${MX}" y="${MY}" width="${3*CELL}" height="${4*CELL}" rx="9" fill="#fff" filter="url(#bsh)"/>`;
+  s += `<g clip-path="url(#bclip)">`;
+  s += `<rect x="${MX}" y="${MY}" width="${3*CELL}" height="${CELL}" fill="url(#sky)"/>`;            // gote back rank: sky
+  s += `<rect x="${MX}" y="${MY+CELL}" width="${3*CELL}" height="${2*CELL}" fill="#f1e6c6"/>`;         // midfield: savanna
+  s += `<rect x="${MX}" y="${MY+3*CELL}" width="${3*CELL}" height="${CELL}" fill="url(#grass)"/>`;     // sente back rank: grass
+  s += cloud(MX + CELL*0.74, MY + CELL*0.38, 0.92) + cloud(MX + CELL*2.28, MY + CELL*0.62, 1.08);
+  // soft mountains on the home rank, then a foreground hill
+  const gy = MY + 3*CELL;
+  s += `<g fill="#a6c97c" opacity="0.7">`
+     + `<path d="M${MX+CELL*0.35} ${MY+4*CELL} L${MX+CELL*1.05} ${gy+22} L${MX+CELL*1.75} ${MY+4*CELL} Z"/>`
+     + `<path d="M${MX+CELL*1.55} ${MY+4*CELL} L${MX+CELL*2.3} ${gy+10} L${MX+3*CELL+6} ${MY+4*CELL} Z"/></g>`;
+  s += `<path d="M${MX} ${MY+4*CELL} L${MX} ${gy+46} `
+     + `Q${MX+CELL*1.0} ${gy+20} ${MX+CELL*1.8} ${gy+40} `
+     + `Q${MX+CELL*2.5} ${gy+56} ${MX+3*CELL} ${gy+34} `
+     + `L${MX+3*CELL} ${MY+4*CELL} Z" fill="#bcdb92" opacity="0.9"/>`;
+  s += `</g>`;
+
+  // grid + frame
+  for (let i = 1; i < 3; i++)
+    s += `<line x1="${MX+i*CELL}" y1="${MY}" x2="${MX+i*CELL}" y2="${MY+4*CELL}" stroke="#00000018" stroke-width="1"/>`;
+  for (let i = 1; i < 4; i++)
+    s += `<line x1="${MX}" y1="${MY+i*CELL}" x2="${MX+3*CELL}" y2="${MY+i*CELL}" stroke="#00000018" stroke-width="1"/>`;
+  s += `<rect x="${MX}" y="${MY}" width="${3*CELL}" height="${4*CELL}" rx="9" fill="none" stroke="#9c8856" stroke-width="3"/>`;
+
+  // coordinates
   for (let f = 0; f < 3; f++)
-    s += `<text x="${MX + f*CELL + CELL/2}" y="${MY-8}" font-size="14" text-anchor="middle" fill="#9a8a62" font-weight="600">${FILES[f].toUpperCase()}</text>`;
+    s += `<text x="${cx(f)}" y="${MY-8}" font-size="13" text-anchor="middle" fill="#9a8a62" font-weight="700">${FILES[f].toUpperCase()}</text>`;
   for (let r = 0; r < 4; r++)
-    s += `<text x="${MX-10}" y="${MY + r*CELL + CELL/2+5}" font-size="14" text-anchor="middle" fill="#9a8a62" font-weight="600">${r+1}</text>`;
-  for (let r = 0; r < 4; r++)
-    for (let c = 0; c < 3; c++) {
-      const x = MX + c*CELL, y = MY + r*CELL;
-      const hot = hoverTo && hoverTo.col === c && hoverTo.row === r;
-      s += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="var(--board)" stroke="${hot?'#d98a2b':'var(--line)'}" stroke-width="${hot?3:1}"/>`;
-      const p = occ[r*3 + c];
-      if (p) {
-        const h = CELL*0.40, tx = x+CELL/2, ty = y+CELL/2;
-        const fill = p.owner === "sente" ? "var(--ivory)" : "var(--slate)";
-        const stroke = p.owner === "sente" ? "#6f5d33" : "#20252d";
-        s += `<rect x="${tx-h}" y="${ty-h}" width="${2*h}" height="${2*h}" rx="${h*0.18}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
-        const g = CELL*0.46;
-        s += `<image href="/emoji/${PIECE[p.piece]}.svg" x="${tx-g/2}" y="${ty-g/2}" width="${g}" height="${g}"/>`;
-      }
-    }
+    s += `<text x="${MX-12}" y="${cy(r)+5}" font-size="13" text-anchor="middle" fill="#9a8a62" font-weight="700">${r+1}</text>`;
+
+  // last-move highlight
+  if (lastMove) for (const sq of [lastMove.from, lastMove.to]) if (sq)
+    s += `<rect x="${MX+sq.col*CELL+2}" y="${MY+sq.row*CELL+2}" width="${CELL-4}" height="${CELL-4}" fill="#f6d873" opacity="0.5"/>`;
+
+  // legal-destination markers while dragging
+  for (const t of dragTargets) {
+    if (occ[t.row*3 + t.col])
+      s += `<circle cx="${cx(t.col)}" cy="${cy(t.row)}" r="${CELL*0.46}" fill="none" stroke="#2b8a8a" stroke-width="4" opacity="0.7"/>`;
+    else
+      s += `<circle cx="${cx(t.col)}" cy="${cy(t.row)}" r="${CELL*0.15}" fill="#2b8a8a" opacity="0.45"/>`;
+  }
+
+  // hover ring (move preview / drag target under pointer)
+  if (hoverTo)
+    s += `<rect x="${MX+hoverTo.col*CELL+1.5}" y="${MY+hoverTo.row*CELL+1.5}" width="${CELL-3}" height="${CELL-3}" rx="4" fill="none" stroke="${"var(--accent)"}" stroke-width="3"/>`;
+
+  // pieces
+  for (const p of parsed.cells) s += pieceTile(cx(p.col), cy(p.row), p.piece, p.owner);
+
   document.getElementById("board").innerHTML = s;
-  const fmt = a => a.length ? a.map(p => `<img src="/emoji/${PIECE[p]}.svg" data-piece="${p}" draggable="false">`).join(" ") : "—";
-  document.getElementById("hands").innerHTML =
-    `in hand &nbsp; first player: ${fmt(parsed.sente)} &nbsp;&nbsp; second player: ${fmt(parsed.gote)}`;
+  document.getElementById("board").classList.toggle("grab", parsed.cells.length > 0);
+  renderHands(parsed);
+}
+
+function renderHands(parsed) {
+  const chips = (arr, owner) => {
+    const lbl = `<span class="traylbl">${owner === "sente" ? "First player" : "Second player"}</span>`;
+    if (!arr.length) return lbl + `<span class="empty">empty hand</span>`;
+    const counts = {}; arr.forEach(p => counts[p] = (counts[p] || 0) + 1);
+    return lbl + Object.entries(counts).map(([p, n]) =>
+      `<span class="chip ${owner}" data-piece="${p}"><img src="/emoji/${PIECE[p]}.svg" draggable="false">`
+      + (n > 1 ? `<span class="cnt">×${n}</span>` : ``) + `</span>`).join("");
+  };
+  const top = document.getElementById("trayTop"), bot = document.getElementById("trayBottom");
+  top.innerHTML = chips(parsed.gote, "gote");
+  bot.innerHTML = chips(parsed.sente, "sente");
+  top.classList.toggle("active", parsed.side === "G");
+  bot.classList.toggle("active", parsed.side === "S");
 }
 
 function verdict(data) {
@@ -144,22 +270,9 @@ function verdict(data) {
 
 function group(moves, kind) {
   let g = moves.filter(m => m.result === kind);
-  if (kind === "win") g.sort((a,b) => a.dtm - b.dtm);   // fastest win first
-  if (kind === "loss") g.sort((a,b) => b.dtm - a.dtm);  // slowest loss = best defense first
+  if (kind === "win") g.sort((a, b) => a.dtm - b.dtm);   // fastest win first
+  if (kind === "loss") g.sort((a, b) => b.dtm - a.dtm);  // slowest loss = best defense first
   return g;
-}
-
-function moveSquares(mv) {
-  const piece = mv[0];
-  if (mv[1] === "*") {
-    const t = mv.slice(2, 4);
-    return { from: null, piece, to: { col: FILES.indexOf(t[0]), row: +t[1] - 1 } };
-  }
-  const f = mv.slice(1, 3);
-  const core = mv.endsWith("+") ? mv.slice(0, -1) : mv;
-  const t = core.slice(-2);
-  return { from: { col: FILES.indexOf(f[0]), row: +f[1] - 1 }, piece,
-           to: { col: FILES.indexOf(t[0]), row: +t[1] - 1 } };
 }
 
 function render(data) {
@@ -187,10 +300,11 @@ function render(data) {
       row.className = "move" + (m.to ? "" : " dead");
       const badge = kind === "draw" ? "draw" : (m.to ? m.dtm : `#${m.dtm}`);
       row.innerHTML = `<span class="mv">${m.move}</span><span class="badge ${kind}">${badge}</span>`;
-      row.onmouseenter = () => { hoverTo = destOf(m.move); renderBoard(parsed); };
+      const sq = moveSquares(m.move);
+      row.onmouseenter = () => { hoverTo = sq.to; renderBoard(parsed); };
       row.onmouseleave = () => { hoverTo = null; renderBoard(parsed); };
-      if (m.to) row.onclick = () => go(m.to, true);
-      else row.title = "captures the lion / wins — game over";
+      if (m.to) row.onclick = () => { lastMove = { from: sq.from, to: sq.to }; go(m.to, true); };
+      else row.title = "captures the lion / completes a Try — game over";
       box.appendChild(row);
     }
   }
@@ -200,38 +314,58 @@ async function go(pos, push) {
   const data = await (await fetch("/api?pos=" + encodeURIComponent(pos))).json();
   if (data.error) { alert(data.error); return; }
   if (push) history.push(pos);
-  hoverTo = null;
+  hoverTo = null; dragTargets = [];
   render(data);
 }
 
 // ---- drag to move (board) / drop from hand ----
 function squareFromEvent(e) {
   const r = document.getElementById("board").getBoundingClientRect();
-  const x = (e.clientX - r.left) * (300 / r.width);
-  const y = (e.clientY - r.top) * (384 / r.height);
+  const x = (e.clientX - r.left) * (SVGW / r.width);
+  const y = (e.clientY - r.top) * (SVGH / r.height);
   const col = Math.floor((x - MX) / CELL), row = Math.floor((y - MY) / CELL);
   return (col < 0 || col > 2 || row < 0 || row > 3) ? null : { col, row };
+}
+function targetsFor(d) {
+  const map = d.kind === "board" ? byBoard : byDrop;
+  const prefix = d.kind === "board" ? `${d.from.col}${d.from.row}-` : `${d.piece}-`;
+  const out = [];
+  for (const k in map) if (k.startsWith(prefix)) {
+    const t = k.slice(prefix.length);
+    out.push({ col: +t[0], row: +t[1] });
+  }
+  return out;
 }
 function tryMove(d, dest) {
   const m = d.kind === "board"
     ? byBoard[`${d.from.col}${d.from.row}-${dest.col}${dest.row}`]
     : byDrop[`${d.piece}-${dest.col}${dest.row}`];
   if (!m) return;
-  if (m.to) go(m.to, true);
-  else alert("That move wins — the lion is captured (or a Try).");
+  const sq = moveSquares(m.move);
+  if (m.to) { lastMove = { from: sq.from, to: sq.to }; go(m.to, true); }
+  else alert("That move wins — the lion is captured (or a Try is completed).");
+}
+function endDrag() {
+  drag = null; dragTargets = []; hoverTo = null;
+  if (curParsed) renderBoard(curParsed);
 }
 document.getElementById("board").addEventListener("pointerdown", e => {
   const sq = squareFromEvent(e);
   if (!sq || !curParsed || !curParsed.cells.some(c => c.col === sq.col && c.row === sq.row)) return;
   e.preventDefault();
   drag = { kind: "board", from: sq };
+  dragTargets = targetsFor(drag);
+  renderBoard(curParsed);
 });
-document.getElementById("hands").addEventListener("pointerdown", e => {
-  if (e.target.tagName === "IMG" && e.target.dataset.piece) {
+for (const id of ["trayTop", "trayBottom"])
+  document.getElementById(id).addEventListener("pointerdown", e => {
+    const chip = e.target.closest(".chip");
+    if (!chip || !chip.dataset.piece) return;
     e.preventDefault();
-    drag = { kind: "hand", piece: e.target.dataset.piece };
-  }
-});
+    drag = { kind: "hand", piece: chip.dataset.piece };
+    dragTargets = targetsFor(drag);
+    if (curParsed) renderBoard(curParsed);
+  });
 window.addEventListener("pointermove", e => {
   if (!drag) return;
   const sq = squareFromEvent(e);
@@ -243,19 +377,14 @@ window.addEventListener("pointermove", e => {
 window.addEventListener("pointerup", e => {
   if (!drag) return;
   const dest = squareFromEvent(e), d = drag;
-  drag = null; hoverTo = null;
-  if (curParsed) renderBoard(curParsed);
+  endDrag();
   if (dest) tryMove(d, dest);
 });
-window.addEventListener("pointercancel", () => {
-  if (!drag) return;
-  drag = null; hoverTo = null;
-  if (curParsed) renderBoard(curParsed);
-});
+window.addEventListener("pointercancel", () => { if (drag) endDrag(); });
 
-document.getElementById("reset").onclick = () => { history = [INITIAL]; go(INITIAL, false); };
+document.getElementById("reset").onclick = () => { history = [INITIAL]; lastMove = null; go(INITIAL, false); };
 document.getElementById("back").onclick = () => {
-  if (history.length > 1) { history.pop(); go(history[history.length - 1], false); }
+  if (history.length > 1) { history.pop(); lastMove = null; go(history[history.length - 1], false); }
 };
 go(INITIAL, false);
 </script>
