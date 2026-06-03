@@ -16,8 +16,18 @@ import urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-PROBE = os.path.join(ROOT, "external", "clausecker-dobutsu", "probe")
-TB = os.path.join(ROOT, "external", "clausecker-dobutsu", "dobutsu.tb")
+# Prefer our own Rust tablebase once it's built; fall back to clausecker. Both
+# speak the same stdin/stdout JSON protocol, so the rest is identical.
+OURS = (os.path.join(ROOT, "solver", "target", "release", "tbprobe"),
+        os.path.join(ROOT, "solver", "dobutsu.tb.bin"))
+CLAUSECKER = (os.path.join(ROOT, "external", "clausecker-dobutsu", "probe"),
+              os.path.join(ROOT, "external", "clausecker-dobutsu", "dobutsu.tb"))
+if all(os.path.exists(p) for p in OURS):
+    PROBE, TB = OURS
+    print("backend: our own tablebase (solver/dobutsu.tb.bin)")
+else:
+    PROBE, TB = CLAUSECKER
+    print("backend: clausecker (our tablebase not built yet)")
 EMOJI = os.path.join(ROOT, "assets", "diagrams", "emoji")
 PORT = 41234
 INITIAL = "S/gle/-c-/-C-/ELG/-"

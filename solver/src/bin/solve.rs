@@ -20,6 +20,7 @@ const UNKNOWN: i16 = 0;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let no_drops = args.iter().any(|a| a == "--no-drops");
+    let save_path = args.iter().position(|a| a == "--save").and_then(|i| args.get(i + 1)).cloned();
     let gen = |p: &Position| -> Vec<Move> { if no_drops { p.moves_nd() } else { p.moves() } };
     let mk = |p: &Position, m: &Move| -> Position { if no_drops { p.make_nd(m) } else { p.make(m) } };
     let is_terminal = |p: &Position, ms: &[Move]| ms.iter().any(|m| p.is_terminal_win_move(m));
@@ -116,6 +117,21 @@ fn main() {
         }
     }
     let draws = unknown.len();
+    drop(index);
+
+    // ---- serialize: sorted (u64 key, i16 value) records for binary-search probing ----
+    if let Some(path) = &save_path {
+        let mut order: Vec<u32> = (0..n as u32).collect();
+        order.sort_unstable_by_key(|&i| keys[i as usize]);
+        let f = std::fs::File::create(path).expect("create tablebase file");
+        let mut wf = std::io::BufWriter::new(f);
+        for &i in &order {
+            wf.write_all(&keys[i as usize].to_le_bytes()).unwrap();
+            wf.write_all(&values[i as usize].to_le_bytes()).unwrap();
+        }
+        wf.flush().unwrap();
+        eprintln!("[{:?}] wrote {n} entries to {path}", t0.elapsed());
+    }
 
     // ---- report ----
     let (mut w, mut l, mut d) = (0u64, 0u64, 0u64);
