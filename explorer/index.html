@@ -22,7 +22,9 @@
   .wrap { display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start; }
   .left { flex:0 0 auto; }
   .hands { font-size:.85rem; color:var(--muted); margin-top:8px; min-height:24px; }
-  .hands img { width:20px; vertical-align:middle; }
+  .hands img { width:22px; vertical-align:middle; cursor:grab; -webkit-user-drag:none; user-select:none; }
+  #board { touch-action:none; cursor:grab; }
+  #board:active { cursor:grabbing; }
 
   .panel { flex:1 1 280px; min-width:260px; border:1px solid #e7e7ea; border-radius:10px;
            overflow:hidden; }
@@ -77,6 +79,9 @@ const PIECE = {C:"chick", G:"giraffe", E:"elephant", L:"lion", R:"hen"};
 const FILES = ["a","b","c"];
 let history = [INITIAL];
 let hoverTo = null;
+let curParsed = null;      // parsed current position (for board re-renders during drag)
+let byBoard = {}, byDrop = {}; // drag-target -> move
+let drag = null;           // {kind:'board',from} | {kind:'hand',piece}
 
 function parsePos(pos) {
   const parts = pos.split("/");
@@ -123,7 +128,7 @@ function renderBoard(parsed) {
       }
     }
   document.getElementById("board").innerHTML = s;
-  const fmt = a => a.length ? a.map(p => `<img src="/emoji/${PIECE[p]}.svg">`).join(" ") : "—";
+  const fmt = a => a.length ? a.map(p => `<img src="/emoji/${PIECE[p]}.svg" data-piece="${p}" draggable="false">`).join(" ") : "—";
   document.getElementById("hands").innerHTML =
     `in hand &nbsp; first player: ${fmt(parsed.sente)} &nbsp;&nbsp; second player: ${fmt(parsed.gote)}`;
 }
@@ -144,8 +149,28 @@ function group(moves, kind) {
   return g;
 }
 
+function moveSquares(mv) {
+  const piece = mv[0];
+  if (mv[1] === "*") {
+    const t = mv.slice(2, 4);
+    return { from: null, piece, to: { col: FILES.indexOf(t[0]), row: +t[1] - 1 } };
+  }
+  const f = mv.slice(1, 3);
+  const core = mv.endsWith("+") ? mv.slice(0, -1) : mv;
+  const t = core.slice(-2);
+  return { from: { col: FILES.indexOf(f[0]), row: +f[1] - 1 }, piece,
+           to: { col: FILES.indexOf(t[0]), row: +t[1] - 1 } };
+}
+
 function render(data) {
   const parsed = parsePos(data.pos);
+  curParsed = parsed;
+  byBoard = {}; byDrop = {};
+  for (const m of data.moves) {
+    const sq = moveSquares(m.move);
+    if (sq.from === null) byDrop[`${sq.piece}-${sq.to.col}${sq.to.row}`] = m;
+    else byBoard[`${sq.from.col}${sq.from.row}-${sq.to.col}${sq.to.row}`] = m;
+  }
   renderBoard(parsed);
   verdict(data);
   const box = document.getElementById("moves");
@@ -178,6 +203,55 @@ async function go(pos, push) {
   hoverTo = null;
   render(data);
 }
+
+// ---- drag to move (board) / drop from hand ----
+function squareFromEvent(e) {
+  const r = document.getElementById("board").getBoundingClientRect();
+  const x = (e.clientX - r.left) * (300 / r.width);
+  const y = (e.clientY - r.top) * (384 / r.height);
+  const col = Math.floor((x - MX) / CELL), row = Math.floor((y - MY) / CELL);
+  return (col < 0 || col > 2 || row < 0 || row > 3) ? null : { col, row };
+}
+function tryMove(d, dest) {
+  const m = d.kind === "board"
+    ? byBoard[`${d.from.col}${d.from.row}-${dest.col}${dest.row}`]
+    : byDrop[`${d.piece}-${dest.col}${dest.row}`];
+  if (!m) return;
+  if (m.to) go(m.to, true);
+  else alert("That move wins — the lion is captured (or a Try).");
+}
+document.getElementById("board").addEventListener("pointerdown", e => {
+  const sq = squareFromEvent(e);
+  if (!sq || !curParsed || !curParsed.cells.some(c => c.col === sq.col && c.row === sq.row)) return;
+  e.preventDefault();
+  drag = { kind: "board", from: sq };
+});
+document.getElementById("hands").addEventListener("pointerdown", e => {
+  if (e.target.tagName === "IMG" && e.target.dataset.piece) {
+    e.preventDefault();
+    drag = { kind: "hand", piece: e.target.dataset.piece };
+  }
+});
+window.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const sq = squareFromEvent(e);
+  const same = (hoverTo && sq && hoverTo.col === sq.col && hoverTo.row === sq.row) || (!hoverTo && !sq);
+  if (same) return;
+  hoverTo = sq;
+  if (curParsed) renderBoard(curParsed);
+});
+window.addEventListener("pointerup", e => {
+  if (!drag) return;
+  const dest = squareFromEvent(e), d = drag;
+  drag = null; hoverTo = null;
+  if (curParsed) renderBoard(curParsed);
+  if (dest) tryMove(d, dest);
+});
+window.addEventListener("pointercancel", () => {
+  if (!drag) return;
+  drag = null; hoverTo = null;
+  if (curParsed) renderBoard(curParsed);
+});
 
 document.getElementById("reset").onclick = () => { history = [INITIAL]; go(INITIAL, false); };
 document.getElementById("back").onclick = () => {
