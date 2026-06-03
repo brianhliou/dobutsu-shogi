@@ -34,6 +34,7 @@
           border-radius:8px; border:1.5px solid var(--sente-line); background:var(--sente);
           cursor:grab; user-select:none; }
   .chip.gote { background:var(--gote); border-color:var(--gote-line); color:#eef2f8; }
+  .chip.sel { box-shadow:0 0 0 3px rgba(217,138,43,.55); }
   .chip img { width:24px; height:24px; pointer-events:none; -webkit-user-drag:none; }
   .chip .cnt { font-size:.78rem; font-weight:700; }
   .tray .empty { color:#b9b3a4; font-size:.9rem; }
@@ -105,8 +106,9 @@ const MOVES = {
 let history = [INITIAL];
 let curParsed = null;          // parsed current position
 let byBoard = {}, byDrop = {}; // drag-target key -> move
-let drag = null;               // {kind:'board',from} | {kind:'hand',piece}
-let dragTargets = [];          // [{col,row}] legal destinations for the dragged piece
+let selected = null;           // sticky selection: {kind:'board',from} | {kind:'hand',piece}
+let targets = [];              // legal destinations of `selected`
+let press = null;              // transient pointer state during a press: {intent,x,y,moved}
 let hoverTo = null;            // square under the pointer / hovered move destination
 let lastMove = null;           // {from:{col,row}|null, to:{col,row}}
 
@@ -223,8 +225,12 @@ function renderBoard(parsed) {
   if (lastMove) for (const sq of [lastMove.from, lastMove.to]) if (sq)
     s += `<rect x="${MX+sq.col*CELL+2}" y="${MY+sq.row*CELL+2}" width="${CELL-4}" height="${CELL-4}" fill="#f6d873" opacity="0.5"/>`;
 
-  // legal-destination markers while dragging
-  for (const t of dragTargets) {
+  // selected-piece highlight
+  if (selected && selected.kind === "board")
+    s += `<rect x="${MX+selected.from.col*CELL+2}" y="${MY+selected.from.row*CELL+2}" width="${CELL-4}" height="${CELL-4}" fill="#d98a2b" opacity="0.30"/>`;
+
+  // legal-destination markers
+  for (const t of targets) {
     if (occ[t.row*3 + t.col])
       s += `<circle cx="${cx(t.col)}" cy="${cy(t.row)}" r="${CELL*0.46}" fill="none" stroke="#2b8a8a" stroke-width="4" opacity="0.7"/>`;
     else
@@ -248,9 +254,11 @@ function renderHands(parsed) {
     const lbl = `<span class="traylbl">${owner === "sente" ? "First player" : "Second player"}</span>`;
     if (!arr.length) return lbl + `<span class="empty">empty hand</span>`;
     const counts = {}; arr.forEach(p => counts[p] = (counts[p] || 0) + 1);
-    return lbl + Object.entries(counts).map(([p, n]) =>
-      `<span class="chip ${owner}" data-piece="${p}"><img src="/emoji/${PIECE[p]}.svg" draggable="false">`
-      + (n > 1 ? `<span class="cnt">×${n}</span>` : ``) + `</span>`).join("");
+    return lbl + Object.entries(counts).map(([p, n]) => {
+      const sel = selected && selected.kind === "hand" && selected.piece === p ? " sel" : "";
+      return `<span class="chip ${owner}${sel}" data-piece="${p}"><img src="/emoji/${PIECE[p]}.svg" draggable="false">`
+        + (n > 1 ? `<span class="cnt">×${n}</span>` : ``) + `</span>`;
+    }).join("");
   };
   const top = document.getElementById("trayTop"), bot = document.getElementById("trayBottom");
   top.innerHTML = chips(parsed.gote, "gote");
@@ -314,11 +322,11 @@ async function go(pos, push) {
   const data = await (await fetch("/api?pos=" + encodeURIComponent(pos))).json();
   if (data.error) { alert(data.error); return; }
   if (push) history.push(pos);
-  hoverTo = null; dragTargets = [];
+  hoverTo = null; clearSelection();
   render(data);
 }
 
-// ---- drag to move (board) / drop from hand ----
+// ---- selection + drag: click a piece to keep its moves shown; click a target to move ----
 function squareFromEvent(e) {
   const r = document.getElementById("board").getBoundingClientRect();
   const x = (e.clientX - r.left) * (SVGW / r.width);
@@ -326,61 +334,75 @@ function squareFromEvent(e) {
   const col = Math.floor((x - MX) / CELL), row = Math.floor((y - MY) / CELL);
   return (col < 0 || col > 2 || row < 0 || row > 3) ? null : { col, row };
 }
-function targetsFor(d) {
-  const map = d.kind === "board" ? byBoard : byDrop;
-  const prefix = d.kind === "board" ? `${d.from.col}${d.from.row}-` : `${d.piece}-`;
+function targetsFor(sel) {
+  const map = sel.kind === "board" ? byBoard : byDrop;
+  const prefix = sel.kind === "board" ? `${sel.from.col}${sel.from.row}-` : `${sel.piece}-`;
   const out = [];
-  for (const k in map) if (k.startsWith(prefix)) {
-    const t = k.slice(prefix.length);
-    out.push({ col: +t[0], row: +t[1] });
-  }
+  for (const k in map) if (k.startsWith(prefix)) { const t = k.slice(prefix.length); out.push({ col: +t[0], row: +t[1] }); }
   return out;
 }
-function tryMove(d, dest) {
-  const m = d.kind === "board"
-    ? byBoard[`${d.from.col}${d.from.row}-${dest.col}${dest.row}`]
-    : byDrop[`${d.piece}-${dest.col}${dest.row}`];
-  if (!m) return;
+function pieceAt(sq) { return curParsed && curParsed.cells.find(c => c.col === sq.col && c.row === sq.row); }
+function isTarget(sel, sq) {
+  if (!sel || !sq) return null;
+  const key = sel.kind === "board" ? `${sel.from.col}${sel.from.row}-${sq.col}${sq.row}` : `${sel.piece}-${sq.col}${sq.row}`;
+  return (sel.kind === "board" ? byBoard : byDrop)[key] || null;
+}
+function clearSelection() { selected = null; targets = []; }
+function selectThing(sel) { const t = targetsFor(sel); if (t.length) { selected = sel; targets = t; } else clearSelection(); }
+function sameSel(a, b) {
+  return a && b && a.kind === b.kind &&
+    (a.kind === "board" ? (a.from.col === b.from.col && a.from.row === b.from.row) : a.piece === b.piece);
+}
+function execMove(m) {
   const sq = moveSquares(m.move);
+  clearSelection(); hoverTo = null; press = null;
   if (m.to) { lastMove = { from: sq.from, to: sq.to }; go(m.to, true); }
-  else alert("That move wins — the lion is captured (or a Try is completed).");
+  else { if (curParsed) renderBoard(curParsed); alert("That move wins — the lion is captured (or a Try is completed)."); }
 }
-function endDrag() {
-  drag = null; dragTargets = []; hoverTo = null;
-  if (curParsed) renderBoard(curParsed);
-}
-document.getElementById("board").addEventListener("pointerdown", e => {
-  const sq = squareFromEvent(e);
-  if (!sq || !curParsed || !curParsed.cells.some(c => c.col === sq.col && c.row === sq.row)) return;
-  e.preventDefault();
-  drag = { kind: "board", from: sq };
-  dragTargets = targetsFor(drag);
-  renderBoard(curParsed);
-});
-for (const id of ["trayTop", "trayBottom"])
-  document.getElementById(id).addEventListener("pointerdown", e => {
-    const chip = e.target.closest(".chip");
-    if (!chip || !chip.dataset.piece) return;
+
+document.addEventListener("pointerdown", e => {
+  const board = document.getElementById("board");
+  let intent = "clear";
+  if (board.contains(e.target)) {
+    const sq = squareFromEvent(e);
+    const m = isTarget(selected, sq);
+    if (m) { e.preventDefault(); execMove(m); return; }        // click a legal target -> move
+    if (sq && pieceAt(sq)) {
+      const sel = { kind: "board", from: sq };
+      if (sameSel(selected, sel)) clearSelection();            // click the selected piece -> deselect
+      else { selectThing(sel); if (selected) intent = "select"; }
+    } else clearSelection();                                   // click empty square -> deselect
     e.preventDefault();
-    drag = { kind: "hand", piece: chip.dataset.piece };
-    dragTargets = targetsFor(drag);
-    if (curParsed) renderBoard(curParsed);
-  });
+  } else if (e.target.closest(".tray")) {
+    const chip = e.target.closest(".chip");
+    if (chip && chip.dataset.piece) {
+      const sel = { kind: "hand", piece: chip.dataset.piece };
+      if (sameSel(selected, sel)) clearSelection();
+      else { selectThing(sel); if (selected) intent = "select"; }
+      e.preventDefault();
+    } else clearSelection();
+  } else clearSelection();                                     // click anywhere else -> deselect
+  press = { intent, x: e.clientX, y: e.clientY, moved: false };
+  if (curParsed) renderBoard(curParsed);
+});
 window.addEventListener("pointermove", e => {
-  if (!drag) return;
+  if (!press || press.intent !== "select") return;
+  if (!press.moved) { if (Math.hypot(e.clientX - press.x, e.clientY - press.y) < 6) return; press.moved = true; }
   const sq = squareFromEvent(e);
-  const same = (hoverTo && sq && hoverTo.col === sq.col && hoverTo.row === sq.row) || (!hoverTo && !sq);
-  if (same) return;
+  if ((hoverTo && sq && hoverTo.col === sq.col && hoverTo.row === sq.row) || (!hoverTo && !sq)) return;
   hoverTo = sq;
   if (curParsed) renderBoard(curParsed);
 });
 window.addEventListener("pointerup", e => {
-  if (!drag) return;
-  const dest = squareFromEvent(e), d = drag;
-  endDrag();
-  if (dest) tryMove(d, dest);
+  if (!press) return;
+  if (press.intent === "select" && press.moved) {             // drag-release onto a target -> move
+    const m = isTarget(selected, squareFromEvent(e));
+    if (m) { execMove(m); return; }
+  }
+  press = null; hoverTo = null;                               // tap (stays selected) or drag-miss
+  if (curParsed) renderBoard(curParsed);
 });
-window.addEventListener("pointercancel", () => { if (drag) endDrag(); });
+window.addEventListener("pointercancel", () => { press = null; hoverTo = null; if (curParsed) renderBoard(curParsed); });
 
 document.getElementById("reset").onclick = () => { history = [INITIAL]; lastMove = null; go(INITIAL, false); };
 document.getElementById("back").onclick = () => {
