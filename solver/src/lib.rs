@@ -339,10 +339,81 @@ pub fn notation(mv: &Move) -> String {
     s
 }
 
+/// Pack a position losslessly into a u64: 12 board cells (4 bits each) + 6 hand
+/// counts (2 bits each) + the turn bit (61 bits used). A bijection on valid
+/// positions, used as a compact hash key during the solve.
+pub fn pack(p: &Position) -> u64 {
+    let mut x = 0u64;
+    for sq in 0..12 {
+        let code: u64 = match p.board[sq] {
+            None => 0,
+            Some((pc, o)) => {
+                let base = match pc {
+                    Piece::Lion => 1,
+                    Piece::Giraffe => 3,
+                    Piece::Elephant => 5,
+                    Piece::Chick => 7,
+                    Piece::Hen => 9,
+                };
+                base + if o == Owner::Gote { 1 } else { 0 }
+            }
+        };
+        x |= code << (sq * 4);
+    }
+    let mut bit = 48;
+    for &c in p.hand_sente.iter().chain(p.hand_gote.iter()) {
+        x |= (c as u64) << bit;
+        bit += 2;
+    }
+    if p.turn == Owner::Gote {
+        x |= 1 << 60;
+    }
+    x
+}
+
+pub fn unpack(x: u64) -> Position {
+    let mut board = [None; 12];
+    for sq in 0..12 {
+        let code = (x >> (sq * 4)) & 0xF;
+        if code != 0 {
+            let owner = if code % 2 == 0 { Owner::Gote } else { Owner::Sente };
+            let pc = match (code + 1) / 2 {
+                1 => Piece::Lion,
+                2 => Piece::Giraffe,
+                3 => Piece::Elephant,
+                4 => Piece::Chick,
+                _ => Piece::Hen,
+            };
+            board[sq] = Some((pc, owner));
+        }
+    }
+    let mut h = [0u8; 6];
+    for i in 0..6 {
+        h[i] = ((x >> (48 + 2 * i)) & 0x3) as u8;
+    }
+    let turn = if (x >> 60) & 1 == 1 { Owner::Gote } else { Owner::Sente };
+    Position {
+        board,
+        hand_sente: [h[0], h[1], h[2]],
+        hand_gote: [h[3], h[4], h[5]],
+        turn,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::collections::BTreeSet;
+
+    #[test]
+    fn pack_roundtrips() {
+        let p = parse("S/gle/-c-/-C-/ELG/-").unwrap();
+        assert_eq!(unpack(pack(&p)), p);
+        // a position with promotions and pieces in hand
+        let q = parse("G/l-R/-e-/-C-/L--/Geg").unwrap();
+        assert_eq!(unpack(pack(&q)), q);
+        assert_ne!(pack(&p), pack(&q));
+    }
 
     const INIT: &str = "S/gle/-c-/-C-/ELG/-";
 
