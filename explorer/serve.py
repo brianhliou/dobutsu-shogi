@@ -35,7 +35,7 @@ else:
     PROBE, TB = CLAUSECKER
     print("backend: clausecker (our tablebase not built yet)")
 EMOJI = os.path.join(ROOT, "assets", "diagrams", "emoji")
-PORT = 41234
+PORT = int(os.environ.get("PORT", 41234))  # Railway injects $PORT; default for local dev
 INITIAL = "S/gle/-c-/-C-/ELG/-"
 
 probe = subprocess.Popen([PROBE, TB], stdin=subprocess.PIPE,

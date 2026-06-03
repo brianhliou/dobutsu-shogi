@@ -1,0 +1,12 @@
+# Keep the build context small. The tablebase is fetched via ADD, not COPY;
+# the 2.14 GB records file, the C tablebase, and build output never need to ship.
+.git
+solver/target
+external
+**/*.bin
+**/*.tb
+**/*.tb.xz
+**/*.ctb
+**/__pycache__
+**/.DS_Store
+node_modules
