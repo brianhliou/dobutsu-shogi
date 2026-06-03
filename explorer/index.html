@@ -109,7 +109,8 @@ let byBoard = {}, byDrop = {}; // drag-target key -> move
 let selected = null;           // sticky selection: {kind:'board',from} | {kind:'hand',piece}
 let targets = [];              // legal destinations of `selected`
 let press = null;              // transient pointer state during a press: {intent,x,y,moved}
-let hoverTo = null;            // square under the pointer / hovered move destination
+let hoverTo = null;            // square under the pointer (during a drag)
+let hoverMove = null;          // move previewed from the list: {from:{col,row}|null, to, piece}
 let lastMove = null;           // {from:{col,row}|null, to:{col,row}}
 
 function parsePos(pos) {
@@ -167,21 +168,37 @@ function cloud(cx, cy, s) {
     <ellipse cx="${cx+2*s}" cy="${cy-8*s}" rx="${13*s}" ry="${9*s}"/></g>`;
 }
 
-function pieceTile(cx, cy, letter, owner) {
+function pieceTile(cx, cy, letter, owner, ghost) {
   const half = CELL * 0.40, glyph = CELL * 0.50, up = owner === "sente";
   const fill = up ? "var(--sente)" : "var(--gote)";
   const stroke = up ? "var(--sente-line)" : "var(--gote-line)";
   const dotc = up ? "#7a4a2a" : "#e9eef6";
-  let p = `<rect class="pc" x="${(cx-half).toFixed(1)}" y="${(cy-half).toFixed(1)}" width="${(2*half).toFixed(1)}" `
-        + `height="${(2*half).toFixed(1)}" rx="${(half*0.22).toFixed(1)}" fill="${fill}" stroke="${stroke}" `
-        + `stroke-width="2" filter="url(#tsh)"/>`;
+  let p = ghost ? `<g opacity="0.5">` : ``;
+  p += `<rect class="pc" x="${(cx-half).toFixed(1)}" y="${(cy-half).toFixed(1)}" width="${(2*half).toFixed(1)}" `
+     + `height="${(2*half).toFixed(1)}" rx="${(half*0.22).toFixed(1)}" fill="${fill}" stroke="${stroke}" `
+     + `stroke-width="2"${ghost ? ` stroke-dasharray="5 3"` : ` filter="url(#tsh)"`}/>`;
   const sign = up ? 1 : -1, rr = half * 0.80, dr = half * 0.10;
   for (const d of (MOVES[letter] || [])) {
     const [ux, uy] = DIRS[d];
     p += `<circle class="pc" cx="${(cx+sign*ux*rr).toFixed(1)}" cy="${(cy+sign*uy*rr).toFixed(1)}" r="${dr.toFixed(1)}" fill="${dotc}"/>`;
   }
   p += `<image href="/emoji/${PIECE[letter]}.svg" x="${(cx-glyph/2).toFixed(1)}" y="${(cy-glyph/2).toFixed(1)}" width="${glyph.toFixed(1)}" height="${glyph.toFixed(1)}"/>`;
-  return p;
+  return p + (ghost ? `</g>` : ``);
+}
+
+// short arrow from one square's centre to an adjacent one (every move is one step)
+function arrow(from, to) {
+  const c = (col, row) => [MX + col*CELL + CELL/2, MY + row*CELL + CELL/2];
+  const [x1, y1] = c(from.col, from.row), [x2, y2] = c(to.col, to.row);
+  const dx = x2-x1, dy = y2-y1, len = Math.hypot(dx, dy) || 1, ux = dx/len, uy = dy/len, px = -uy, py = ux;
+  const w = CELL*0.13, head = CELL*0.34, hw = CELL*0.21;
+  const sx = x1 + ux*CELL*0.24, sy = y1 + uy*CELL*0.24;        // start just outside the source centre
+  const tipx = x2 - ux*CELL*0.08, tipy = y2 - uy*CELL*0.08;    // tip just short of the dest centre
+  const bx = tipx - ux*head, by = tipy - uy*head;             // arrowhead base
+  const col = "#e08220";
+  return `<g opacity="0.9">`
+    + `<line x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${bx.toFixed(1)}" y2="${by.toFixed(1)}" stroke="${col}" stroke-width="${w.toFixed(1)}" stroke-linecap="round"/>`
+    + `<polygon points="${tipx.toFixed(1)},${tipy.toFixed(1)} ${(bx+px*hw).toFixed(1)},${(by+py*hw).toFixed(1)} ${(bx-px*hw).toFixed(1)},${(by-py*hw).toFixed(1)}" fill="${col}"/></g>`;
 }
 
 function renderBoard(parsed) {
@@ -243,6 +260,17 @@ function renderBoard(parsed) {
 
   // pieces
   for (const p of parsed.cells) s += pieceTile(cx(p.col), cy(p.row), p.piece, p.owner);
+
+  // hovered-move preview: an arrow for a board move, a ghost piece for a drop
+  if (hoverMove) {
+    const to = hoverMove.to;
+    if (hoverMove.from) {
+      s += `<rect x="${MX+to.col*CELL+1.5}" y="${MY+to.row*CELL+1.5}" width="${CELL-3}" height="${CELL-3}" rx="4" fill="none" stroke="#e08220" stroke-width="3" opacity="0.85"/>`;
+      s += arrow(hoverMove.from, to);
+    } else {
+      s += pieceTile(cx(to.col), cy(to.row), hoverMove.piece, parsed.side === "S" ? "sente" : "gote", true);
+    }
+  }
 
   document.getElementById("board").innerHTML = s;
   document.getElementById("board").classList.toggle("grab", parsed.cells.length > 0);
@@ -309,8 +337,8 @@ function render(data) {
       const badge = kind === "draw" ? "draw" : (m.to ? m.dtm : `#${m.dtm}`);
       row.innerHTML = `<span class="mv">${m.move}</span><span class="badge ${kind}">${badge}</span>`;
       const sq = moveSquares(m.move);
-      row.onmouseenter = () => { hoverTo = sq.to; renderBoard(parsed); };
-      row.onmouseleave = () => { hoverTo = null; renderBoard(parsed); };
+      row.onmouseenter = () => { hoverMove = sq; renderBoard(parsed); };
+      row.onmouseleave = () => { hoverMove = null; renderBoard(parsed); };
       if (m.to) row.onclick = () => { lastMove = { from: sq.from, to: sq.to }; go(m.to, true); };
       else row.title = "captures the lion / completes a Try — game over";
       box.appendChild(row);
@@ -322,7 +350,7 @@ async function go(pos, push) {
   const data = await (await fetch("/api?pos=" + encodeURIComponent(pos))).json();
   if (data.error) { alert(data.error); return; }
   if (push) history.push(pos);
-  hoverTo = null; clearSelection();
+  hoverTo = null; hoverMove = null; clearSelection();
   render(data);
 }
 
