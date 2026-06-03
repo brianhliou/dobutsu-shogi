@@ -31,3 +31,6 @@ article/preview.html
 *.tb.xz
 *.dtm
 *.bin
+
+# Rust build output
+target/
