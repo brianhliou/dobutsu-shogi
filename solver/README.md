@@ -16,16 +16,25 @@ with drops disabled) that the article's §4 thesis rests on.
   attacked square it is a normal (losing) move. Positions with the lions adjacent or a
   lion ascended are resolution positions clausecker doesn't store standalone — valid as
   children, skipped as probe inputs.
+- **Full solve — done.** `cargo run --release --bin solve` enumerates **213,993,386**
+  canonical reachable positions (turn + mirror folded) and fills distance-to-mate by
+  retrograde analysis (~75 min, ~7 GB). **The initial position evaluates to −78 (Gote wins
+  in 78)**, max DTM 173, win/loss/draw 174,089,910 / 37,228,827 / 2,674,649; a 4,911-position
+  spot-check against clausecker has **0 mismatches**. Our own tablebase, independently
+  computed and validated. (Slow because each round regenerates moves+keys; a cached
+  successor adjacency would cut it to ~10 min.)
 
 ## Roadmap
 
 1. ~~Bulk oracle diff~~ — **done** (200k positions, 0 mismatches).
-2. Enumerate reachable positions from the start.
-3. Retrograde analysis → distance-to-mate for every position; validate the whole table
-   against clausecker.
-4. Compile to WASM; swap the explorer's backend from the local probe to in-browser WASM.
-5. **Drops ablation:** a `--no-drops` flag in move generation, re-solve, compare draw
-   rate / max-DTM / depth profile against the standard game.
+2. ~~Enumerate~~ — **done** (213,993,386 canonical positions).
+3. ~~Retrograde + validate~~ — **done** (initial = −78, 4,911-position spot-check vs
+   clausecker = 0 mismatches).
+4. Serialize the tablebase to a file; serve it (Railway probe) and point the explorer at it.
+5. Speed: cache successor adjacency (one round = array reads) to cut the solve to ~10 min.
+6. **Drops ablation:** a `--no-drops` flag in move generation, re-solve, compare draw
+   rate / max-DTM / depth profile against the standard game (the §4 stat).
+7. (Optional) compile to WASM for a static/offline explorer.
 
 ## Run
 
