@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dōbutsu Shōgi tablebase explorer</title>
+<style>
+  :root { --ivory:#fbf5e6; --slate:#373d47; --board:#f3e7c6; --line:#cbb98a;
+          --win:#2e7d32; --loss:#c0392b; --draw:#888; }
+  body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; color:#1a1a1a;
+         margin:24px auto; max-width:760px; padding:0 16px; line-height:1.5; }
+  h1 { font-size:1.3rem; margin:0 0 2px; }
+  .sub { color:#777; font-size:.85rem; margin-bottom:18px; }
+  .wrap { display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; }
+  #board { flex:0 0 auto; }
+  .hands { font-size:.85rem; color:#555; margin-top:8px; min-height:24px; }
+  .hands img { width:20px; vertical-align:middle; }
+  .panel { flex:1 1 260px; min-width:240px; }
+  .status { font-weight:600; margin-bottom:8px; }
+  .moves { border:1px solid #eee; border-radius:8px; overflow:hidden; }
+  .move { display:flex; align-items:center; justify-content:space-between; gap:8px;
+          padding:7px 12px; border-bottom:1px solid #f0f0f0; cursor:pointer; font-size:.95rem; }
+  .move:last-child { border-bottom:none; }
+  .move:hover { background:#faf7ef; }
+  .move .mv { font-family:ui-monospace,Menlo,monospace; }
+  .badge { font-size:.78rem; font-weight:600; padding:2px 8px; border-radius:10px; color:#fff; white-space:nowrap; }
+  .b-win{background:var(--win)} .b-loss{background:var(--loss)} .b-draw{background:var(--draw)}
+  .controls { margin:14px 0; }
+  button { font:inherit; padding:5px 12px; margin-right:8px; border:1px solid #ccc;
+           background:#fff; border-radius:6px; cursor:pointer; }
+  button:hover { background:#f3f3f3; }
+  .note { color:#999; font-size:.8rem; margin-top:14px; }
+</style>
+</head>
+<body>
+  <h1>Dōbutsu Shōgi tablebase explorer</h1>
+  <div class="sub">Every legal move with its result under perfect play. Click a move to follow it.</div>
+  <div class="controls">
+    <button id="reset">Reset</button>
+    <button id="back">Back</button>
+  </div>
+  <div class="wrap">
+    <div>
+      <svg id="board" width="300" height="384" viewBox="0 0 300 384"></svg>
+      <div class="hands" id="hands"></div>
+    </div>
+    <div class="panel">
+      <div class="status" id="status">…</div>
+      <div class="moves" id="moves"></div>
+    </div>
+  </div>
+  <div class="note">Backed by a complete endgame tablebase. Animal glyphs: Twemoji (CC-BY 4.0).</div>
+
+<script>
+const INITIAL = "S/gle/-c-/-C-/ELG/-";
+const CELL = 84, MX = 24, MY = 24;
+const PIECE = {C:"chick", G:"giraffe", E:"elephant", L:"lion", R:"hen"};
+const FILES = ["a","b","c"];
+let history = [];
+let hoverTo = null;
+
+function parsePos(pos) {
+  const parts = pos.split("/");
+  const side = parts[0];
+  const cells = [];
+  const sente = [], gote = [];
+  for (let r = 0; r < 4; r++)
+    for (let c = 0; c < 3; c++) {
+      const ch = parts[1 + r][c];
+      if (ch === "-") continue;
+      const owner = ch === ch.toUpperCase() ? "sente" : "gote";
+      cells.push({ col: c, row: r, piece: ch.toUpperCase(), owner });
+    }
+  const hand = parts[5] || "-";
+  if (hand !== "-") for (const ch of hand)
+    (ch === ch.toUpperCase() ? sente : gote).push(ch.toUpperCase());
+  return { side, cells, sente, gote };
+}
+
+// destination square ("c3") parsed from a move string -> {col,row}
+function destOf(mv) {
+  const m = mv.match(/([abc])([1-4])$/);
+  if (!m) return null;
+  return { col: FILES.indexOf(m[1]), row: parseInt(m[2], 10) - 1 };
+}
+
+function emoji(piece, x, y, size) {
+  return `<image href="/emoji/${PIECE[piece]}.svg" x="${x}" y="${y}" width="${size}" height="${size}"/>`;
+}
+
+function renderBoard(parsed) {
+  const occ = {};
+  parsed.cells.forEach(c => occ[c.row * 3 + c.col] = c);
+  let s = "";
+  for (let f = 0; f < 3; f++)
+    s += `<text x="${MX + f*CELL + CELL/2}" y="${MY-8}" font-size="14" text-anchor="middle" fill="#9a8a62" font-weight="600">${FILES[f].toUpperCase()}</text>`;
+  for (let r = 0; r < 4; r++)
+    s += `<text x="${MX-10}" y="${MY + r*CELL + CELL/2+5}" font-size="14" text-anchor="middle" fill="#9a8a62" font-weight="600">${r+1}</text>`;
+  for (let r = 0; r < 4; r++)
+    for (let c = 0; c < 3; c++) {
+      const x = MX + c*CELL, y = MY + r*CELL;
+      const hot = hoverTo && hoverTo.col === c && hoverTo.row === r;
+      s += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="var(--board)" stroke="${hot?'#d98a2b':'var(--line)'}" stroke-width="${hot?3:1}"/>`;
+      const p = occ[r*3 + c];
+      if (p) {
+        const h = CELL*0.40, tx = x+CELL/2, ty = y+CELL/2;
+        const fill = p.owner === "sente" ? "var(--ivory)" : "var(--slate)";
+        const stroke = p.owner === "sente" ? "#6f5d33" : "#20252d";
+        s += `<rect x="${tx-h}" y="${ty-h}" width="${2*h}" height="${2*h}" rx="${h*0.18}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+        const g = CELL*0.46;
+        s += emoji(p.piece, tx-g/2, ty-g/2, g);
+      }
+    }
+  document.getElementById("board").innerHTML = s;
+  const hands = document.getElementById("hands");
+  const fmt = a => a.length ? a.map(p => `<img src="/emoji/${PIECE[p]}.svg">`).join("") : "—";
+  hands.innerHTML = `in hand &nbsp; first player: ${fmt(parsed.sente)} &nbsp;&nbsp; second player: ${fmt(parsed.gote)}`;
+}
+
+const RANK = { win: 0, draw: 1, loss: 2 };
+function sortMoves(moves) {
+  return moves.slice().sort((a, b) => {
+    if (RANK[a.result] !== RANK[b.result]) return RANK[a.result] - RANK[b.result];
+    if (a.result === "win") return a.dtm - b.dtm;       // faster win first
+    if (a.result === "loss") return b.dtm - a.dtm;      // slower loss first
+    return 0;
+  });
+}
+
+function badge(m) {
+  if (m.result === "win") return `<span class="badge b-win">Win in ${m.dtm}</span>`;
+  if (m.result === "loss") return `<span class="badge b-loss">Loss in ${m.dtm}</span>`;
+  return `<span class="badge b-draw">Draw</span>`;
+}
+
+function statusLine(data) {
+  const who = data.side === "S" ? "First player (Sente)" : "Second player (Gote)";
+  const v = data.value;
+  const verb = v.result === "win" ? `winning in ${v.dtm}` :
+               v.result === "loss" ? `losing in ${v.dtm}` : "drawn";
+  return `${who} to move — ${verb}`;
+}
+
+function render(data) {
+  const parsed = parsePos(data.pos);
+  renderBoard(parsed);
+  document.getElementById("status").textContent = statusLine(data);
+  const box = document.getElementById("moves");
+  box.innerHTML = "";
+  for (const m of sortMoves(data.moves)) {
+    const row = document.createElement("div");
+    row.className = "move";
+    row.innerHTML = `<span class="mv">${m.move}</span>${badge(m)}`;
+    row.onmouseenter = () => { hoverTo = destOf(m.move); renderBoard(parsed); };
+    row.onmouseleave = () => { hoverTo = null; renderBoard(parsed); };
+    row.onclick = () => { if (m.to) go(m.to, true); };
+    if (!m.to) { row.style.cursor = "default"; row.title = "captures the lion — game over"; }
+    box.appendChild(row);
+  }
+}
+
+async function go(pos, push) {
+  const data = await (await fetch("/api?pos=" + encodeURIComponent(pos))).json();
+  if (data.error) { alert(data.error); return; }
+  if (push) history.push(pos);
+  hoverTo = null;
+  render(data);
+}
+
+document.getElementById("reset").onclick = () => { history = [INITIAL]; go(INITIAL, false); };
+document.getElementById("back").onclick = () => {
+  if (history.length > 1) { history.pop(); go(history[history.length - 1], false); }
+};
+history = [INITIAL];
+go(INITIAL, false);
+</script>
+</body>
+</html>
