@@ -400,10 +400,57 @@ pub fn unpack(x: u64) -> Position {
     }
 }
 
+/// Turn-normalized equivalent (always Sente to move). A Gote-to-move position is
+/// rotated 180° with its colors swapped, which is value-equivalent; two
+/// turn-symmetric positions share this canonical form, halving the state space.
+pub fn canonical(p: &Position) -> Position {
+    if p.turn == Owner::Sente {
+        return *p;
+    }
+    let mut board = [None; 12];
+    for s in 0..12usize {
+        let s2 = (3 - s / 3) * 3 + (2 - s % 3);
+        board[s2] = p.board[s].map(|(pc, o)| (pc, o.flip()));
+    }
+    Position {
+        board,
+        hand_sente: p.hand_gote,
+        hand_gote: p.hand_sente,
+        turn: Owner::Sente,
+    }
+}
+
+/// File-mirror (a↔c): a value-preserving spatial symmetry of the board.
+fn mirror(p: &Position) -> Position {
+    let mut board = [None; 12];
+    for s in 0..12usize {
+        board[(s / 3) * 3 + (2 - s % 3)] = p.board[s];
+    }
+    Position { board, hand_sente: p.hand_sente, hand_gote: p.hand_gote, turn: p.turn }
+}
+
+/// Canonical packed key, folding the full value-symmetry group: turn (180°
+/// rotation + colour swap) and left-right mirror. Equivalent positions share it.
+pub fn canonical_key(p: &Position) -> u64 {
+    let q = canonical(p); // turn-normalized (Sente to move)
+    pack(&q).min(pack(&mirror(&q)))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::collections::BTreeSet;
+
+    #[test]
+    fn canonical_is_idempotent_and_sente_identity() {
+        let p = parse("S/gle/-c-/-C-/ELG/-").unwrap();
+        assert_eq!(canonical(&p), p); // already Sente to move
+        // a Gote-to-move position canonicalizes to Sente and is stable
+        let g = parse("G/gle/-c-/-C-/ELG/-").unwrap();
+        let c = canonical(&g);
+        assert_eq!(c.turn, Owner::Sente);
+        assert_eq!(canonical(&c), c);
+    }
 
     #[test]
     fn pack_roundtrips() {
