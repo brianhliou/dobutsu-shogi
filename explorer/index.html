@@ -5,47 +5,66 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dōbutsu Shōgi tablebase explorer</title>
 <style>
-  :root { --ivory:#fbf5e6; --slate:#373d47; --board:#f3e7c6; --line:#cbb98a;
-          --win:#2e7d32; --loss:#c0392b; --draw:#888; }
-  body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; color:#1a1a1a;
-         margin:24px auto; max-width:760px; padding:0 16px; line-height:1.5; }
+  :root {
+    --ivory:#fbf5e6; --slate:#373d47; --board:#f3e7c6; --line:#cbb98a;
+    --win:#2e7d32; --winbg:#eaf4ea; --loss:#c0392b; --lossbg:#fbecea;
+    --draw:#6b7280; --drawbg:#f1f2f4; --ink:#1a1a1a; --muted:#6b7280;
+  }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; color:var(--ink);
+         margin:24px auto; max-width:780px; padding:0 16px; line-height:1.5; }
   h1 { font-size:1.3rem; margin:0 0 2px; }
-  .sub { color:#777; font-size:.85rem; margin-bottom:18px; }
-  .wrap { display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; }
-  #board { flex:0 0 auto; }
-  .hands { font-size:.85rem; color:#555; margin-top:8px; min-height:24px; }
-  .hands img { width:20px; vertical-align:middle; }
-  .panel { flex:1 1 260px; min-width:240px; }
-  .status { font-weight:600; margin-bottom:8px; }
-  .moves { border:1px solid #eee; border-radius:8px; overflow:hidden; }
-  .move { display:flex; align-items:center; justify-content:space-between; gap:8px;
-          padding:7px 12px; border-bottom:1px solid #f0f0f0; cursor:pointer; font-size:.95rem; }
-  .move:last-child { border-bottom:none; }
-  .move:hover { background:#faf7ef; }
-  .move .mv { font-family:ui-monospace,Menlo,monospace; }
-  .badge { font-size:.78rem; font-weight:600; padding:2px 8px; border-radius:10px; color:#fff; white-space:nowrap; }
-  .b-win{background:var(--win)} .b-loss{background:var(--loss)} .b-draw{background:var(--draw)}
-  .controls { margin:14px 0; }
+  .sub { color:var(--muted); font-size:.85rem; margin-bottom:16px; }
+  .controls { margin:0 0 14px; }
   button { font:inherit; padding:5px 12px; margin-right:8px; border:1px solid #ccc;
            background:#fff; border-radius:6px; cursor:pointer; }
   button:hover { background:#f3f3f3; }
-  .note { color:#999; font-size:.8rem; margin-top:14px; }
+  .wrap { display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start; }
+  .left { flex:0 0 auto; }
+  .hands { font-size:.85rem; color:var(--muted); margin-top:8px; min-height:24px; }
+  .hands img { width:20px; vertical-align:middle; }
+
+  .panel { flex:1 1 280px; min-width:260px; border:1px solid #e7e7ea; border-radius:10px;
+           overflow:hidden; }
+  .verdict { padding:12px 14px; font-weight:700; font-size:1.05rem; display:flex;
+             align-items:baseline; gap:8px; border-left:5px solid var(--draw); }
+  .verdict small { font-weight:500; color:var(--muted); font-size:.8rem; }
+  .verdict.win  { background:var(--winbg);  border-left-color:var(--win); }
+  .verdict.loss { background:var(--lossbg); border-left-color:var(--loss); }
+  .verdict.draw { background:var(--drawbg); border-left-color:var(--draw); }
+  .moves { max-height:460px; overflow-y:auto; }
+  .grouphdr { font-size:.72rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+              color:#fff; padding:4px 14px; }
+  .grouphdr.win  { background:var(--win); }
+  .grouphdr.loss { background:var(--loss); }
+  .grouphdr.draw { background:var(--draw); }
+  .move { display:flex; align-items:center; justify-content:space-between; gap:10px;
+          padding:7px 14px; border-bottom:1px solid #f1f1f3; cursor:pointer; font-size:.95rem; }
+  .move:hover { background:#faf7ef; }
+  .move.dead { cursor:default; opacity:.85; }
+  .move .mv { font-family:ui-monospace,Menlo,monospace; }
+  .badge { font-size:.78rem; font-weight:700; padding:2px 9px; border-radius:11px;
+           white-space:nowrap; min-width:34px; text-align:center; }
+  .badge.win  { background:var(--win);  color:#fff; }
+  .badge.loss { background:var(--loss); color:#fff; }
+  .badge.draw { background:#d7dade; color:#333; }
+  .note { color:#9aa0a6; font-size:.78rem; margin-top:14px; }
 </style>
 </head>
 <body>
   <h1>Dōbutsu Shōgi tablebase explorer</h1>
   <div class="sub">Every legal move with its result under perfect play. Click a move to follow it.</div>
   <div class="controls">
-    <button id="reset">Reset</button>
-    <button id="back">Back</button>
+    <button id="reset">↺ Reset</button>
+    <button id="back">← Back</button>
   </div>
   <div class="wrap">
-    <div>
+    <div class="left">
       <svg id="board" width="300" height="384" viewBox="0 0 300 384"></svg>
       <div class="hands" id="hands"></div>
     </div>
     <div class="panel">
-      <div class="status" id="status">…</div>
+      <div class="verdict" id="verdict">…</div>
       <div class="moves" id="moves"></div>
     </div>
   </div>
@@ -56,14 +75,12 @@ const INITIAL = "S/gle/-c-/-C-/ELG/-";
 const CELL = 84, MX = 24, MY = 24;
 const PIECE = {C:"chick", G:"giraffe", E:"elephant", L:"lion", R:"hen"};
 const FILES = ["a","b","c"];
-let history = [];
+let history = [INITIAL];
 let hoverTo = null;
 
 function parsePos(pos) {
   const parts = pos.split("/");
-  const side = parts[0];
-  const cells = [];
-  const sente = [], gote = [];
+  const cells = [], sente = [], gote = [];
   for (let r = 0; r < 4; r++)
     for (let c = 0; c < 3; c++) {
       const ch = parts[1 + r][c];
@@ -74,18 +91,12 @@ function parsePos(pos) {
   const hand = parts[5] || "-";
   if (hand !== "-") for (const ch of hand)
     (ch === ch.toUpperCase() ? sente : gote).push(ch.toUpperCase());
-  return { side, cells, sente, gote };
+  return { side: parts[0], cells, sente, gote };
 }
 
-// destination square ("c3") parsed from a move string -> {col,row}
 function destOf(mv) {
   const m = mv.match(/([abc])([1-4])$/);
-  if (!m) return null;
-  return { col: FILES.indexOf(m[1]), row: parseInt(m[2], 10) - 1 };
-}
-
-function emoji(piece, x, y, size) {
-  return `<image href="/emoji/${PIECE[piece]}.svg" x="${x}" y="${y}" width="${size}" height="${size}"/>`;
+  return m ? { col: FILES.indexOf(m[1]), row: parseInt(m[2], 10) - 1 } : null;
 }
 
 function renderBoard(parsed) {
@@ -108,54 +119,55 @@ function renderBoard(parsed) {
         const stroke = p.owner === "sente" ? "#6f5d33" : "#20252d";
         s += `<rect x="${tx-h}" y="${ty-h}" width="${2*h}" height="${2*h}" rx="${h*0.18}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
         const g = CELL*0.46;
-        s += emoji(p.piece, tx-g/2, ty-g/2, g);
+        s += `<image href="/emoji/${PIECE[p.piece]}.svg" x="${tx-g/2}" y="${ty-g/2}" width="${g}" height="${g}"/>`;
       }
     }
   document.getElementById("board").innerHTML = s;
-  const hands = document.getElementById("hands");
-  const fmt = a => a.length ? a.map(p => `<img src="/emoji/${PIECE[p]}.svg">`).join("") : "—";
-  hands.innerHTML = `in hand &nbsp; first player: ${fmt(parsed.sente)} &nbsp;&nbsp; second player: ${fmt(parsed.gote)}`;
+  const fmt = a => a.length ? a.map(p => `<img src="/emoji/${PIECE[p]}.svg">`).join(" ") : "—";
+  document.getElementById("hands").innerHTML =
+    `in hand &nbsp; first player: ${fmt(parsed.sente)} &nbsp;&nbsp; second player: ${fmt(parsed.gote)}`;
 }
 
-const RANK = { win: 0, draw: 1, loss: 2 };
-function sortMoves(moves) {
-  return moves.slice().sort((a, b) => {
-    if (RANK[a.result] !== RANK[b.result]) return RANK[a.result] - RANK[b.result];
-    if (a.result === "win") return a.dtm - b.dtm;       // faster win first
-    if (a.result === "loss") return b.dtm - a.dtm;      // slower loss first
-    return 0;
-  });
+function verdict(data) {
+  const who = data.side === "S" ? "First player" : "Second player";
+  const v = data.value, el = document.getElementById("verdict");
+  el.className = "verdict " + v.result;
+  if (v.result === "win") el.innerHTML = `${who} wins <small>in ${v.dtm} plies</small>`;
+  else if (v.result === "loss") el.innerHTML = `${who} loses <small>in ${v.dtm} plies</small>`;
+  else el.innerHTML = `Drawn <small>with perfect play</small>`;
 }
 
-function badge(m) {
-  if (m.result === "win") return `<span class="badge b-win">Win in ${m.dtm}</span>`;
-  if (m.result === "loss") return `<span class="badge b-loss">Loss in ${m.dtm}</span>`;
-  return `<span class="badge b-draw">Draw</span>`;
-}
-
-function statusLine(data) {
-  const who = data.side === "S" ? "First player (Sente)" : "Second player (Gote)";
-  const v = data.value;
-  const verb = v.result === "win" ? `winning in ${v.dtm}` :
-               v.result === "loss" ? `losing in ${v.dtm}` : "drawn";
-  return `${who} to move — ${verb}`;
+function group(moves, kind) {
+  let g = moves.filter(m => m.result === kind);
+  if (kind === "win") g.sort((a,b) => a.dtm - b.dtm);   // fastest win first
+  if (kind === "loss") g.sort((a,b) => b.dtm - a.dtm);  // slowest loss = best defense first
+  return g;
 }
 
 function render(data) {
   const parsed = parsePos(data.pos);
   renderBoard(parsed);
-  document.getElementById("status").textContent = statusLine(data);
+  verdict(data);
   const box = document.getElementById("moves");
   box.innerHTML = "";
-  for (const m of sortMoves(data.moves)) {
-    const row = document.createElement("div");
-    row.className = "move";
-    row.innerHTML = `<span class="mv">${m.move}</span>${badge(m)}`;
-    row.onmouseenter = () => { hoverTo = destOf(m.move); renderBoard(parsed); };
-    row.onmouseleave = () => { hoverTo = null; renderBoard(parsed); };
-    row.onclick = () => { if (m.to) go(m.to, true); };
-    if (!m.to) { row.style.cursor = "default"; row.title = "captures the lion — game over"; }
-    box.appendChild(row);
+  for (const [kind, label] of [["win","Winning"],["draw","Drawing"],["loss","Losing"]]) {
+    const moves = group(data.moves, kind);
+    if (!moves.length) continue;
+    const h = document.createElement("div");
+    h.className = "grouphdr " + kind;
+    h.textContent = `${label} · ${moves.length}`;
+    box.appendChild(h);
+    for (const m of moves) {
+      const row = document.createElement("div");
+      row.className = "move" + (m.to ? "" : " dead");
+      const badge = kind === "draw" ? "draw" : (m.to ? m.dtm : `#${m.dtm}`);
+      row.innerHTML = `<span class="mv">${m.move}</span><span class="badge ${kind}">${badge}</span>`;
+      row.onmouseenter = () => { hoverTo = destOf(m.move); renderBoard(parsed); };
+      row.onmouseleave = () => { hoverTo = null; renderBoard(parsed); };
+      if (m.to) row.onclick = () => go(m.to, true);
+      else row.title = "captures the lion / wins — game over";
+      box.appendChild(row);
+    }
   }
 }
 
@@ -171,7 +183,6 @@ document.getElementById("reset").onclick = () => { history = [INITIAL]; go(INITI
 document.getElementById("back").onclick = () => {
   if (history.length > 1) { history.pop(); go(history[history.length - 1], false); }
 };
-history = [INITIAL];
 go(INITIAL, false);
 </script>
 </body>
