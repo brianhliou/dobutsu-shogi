@@ -133,14 +133,21 @@ link with `tbaccess.o poscode.o moves.o position.o notation.o validation.o unmov
 The Rust solver (`solver/`) independently re-derives the tablebase: enumerate canonical
 reachable positions (turn + left-right folded) and fill distance-to-mate by retrograde
 analysis. Validated against clausecker with `tools/verify_tb.py`, which walks positions
-reachable from the start and compares both tablebases on each one: **6,000 positions, 0
-mismatches on result and distance-to-mate** (4 child-only positions clausecker rejects
+reachable from the start and compares both tablebases on each one: **50,000 positions, 0
+mismatches on result and distance-to-mate** (child-only positions clausecker rejects
 standalone are skipped). The initial position and its four first moves match clausecker's
 DTM to the ply.
 
-The explorer serves this tablebase directly: `solver/src/bin/tbprobe.rs` loads the saved
-records and answers the same stdin/stdout JSON protocol as the clausecker probe, so
-`explorer/serve.py` runs on our own solve once `solver/dobutsu.tb.bin` exists.
+The explorer serves this tablebase directly. Two probes speak the same stdin/stdout JSON
+protocol as the clausecker probe, so `explorer/serve.py` uses whichever exists:
+`solver/src/bin/tbprobe.rs` reads the 2.14 GB `(key, value)` records, and
+`solver/src/bin/ctbprobe.rs` reads the **compact 333 MB `dobutsu.ctb`** — a minimal perfect
+hash over the canonical keys (no keys stored, ~3 bits each) plus 9-bit distance-to-mate
+values, built by `solver/src/bin/compact.rs`. The compact probe holds ~400 MB resident
+(vs 2.14 GB) — small enough to host cheaply — and `verify_tb.py` confirms it returns the
+same verdict as clausecker on every position checked. To stay exact without storing keys
+(an MPH cannot report "not in the set"), at a position with an immediate winning move the
+probe emits only that move; every other position has all of its children in the solved set.
 
 - **Standard game:** 213,993,386 canonical positions, initial −78, max DTM 173, draws 2,674,649.
 - **No-drops ablation** (`--no-drops`: captured pieces leave the board as in chess):

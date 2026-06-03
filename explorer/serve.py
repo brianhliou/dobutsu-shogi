@@ -16,15 +16,21 @@ import urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-# Prefer our own Rust tablebase once it's built; fall back to clausecker. Both
-# speak the same stdin/stdout JSON protocol, so the rest is identical.
-OURS = (os.path.join(ROOT, "solver", "target", "release", "tbprobe"),
-        os.path.join(ROOT, "solver", "dobutsu.tb.bin"))
+# Prefer our own tablebase; fall back to clausecker. All three speak the same
+# stdin/stdout JSON protocol, so the rest is identical. The compact 333 MB
+# build (ctbprobe + dobutsu.ctb) is preferred over the 2.14 GB records file.
+COMPACT = (os.path.join(ROOT, "solver", "target", "release", "ctbprobe"),
+           os.path.join(ROOT, "solver", "dobutsu.ctb"))
+RECORDS = (os.path.join(ROOT, "solver", "target", "release", "tbprobe"),
+           os.path.join(ROOT, "solver", "dobutsu.tb.bin"))
 CLAUSECKER = (os.path.join(ROOT, "external", "clausecker-dobutsu", "probe"),
               os.path.join(ROOT, "external", "clausecker-dobutsu", "dobutsu.tb"))
-if all(os.path.exists(p) for p in OURS):
-    PROBE, TB = OURS
-    print("backend: our own tablebase (solver/dobutsu.tb.bin)")
+if all(os.path.exists(p) for p in COMPACT):
+    PROBE, TB = COMPACT
+    print("backend: our own tablebase, compact (solver/dobutsu.ctb)")
+elif all(os.path.exists(p) for p in RECORDS):
+    PROBE, TB = RECORDS
+    print("backend: our own tablebase, records (solver/dobutsu.tb.bin)")
 else:
     PROBE, TB = CLAUSECKER
     print("backend: clausecker (our tablebase not built yet)")

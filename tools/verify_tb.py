@@ -22,8 +22,11 @@ import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OURS = (os.path.join(ROOT, "solver", "target", "release", "tbprobe"),
-        os.path.join(ROOT, "solver", "dobutsu.tb.bin"))
+COMPACT = (os.path.join(ROOT, "solver", "target", "release", "ctbprobe"),
+           os.path.join(ROOT, "solver", "dobutsu.ctb"))
+RECORDS = (os.path.join(ROOT, "solver", "target", "release", "tbprobe"),
+           os.path.join(ROOT, "solver", "dobutsu.tb.bin"))
+OURS = COMPACT if all(os.path.exists(p) for p in COMPACT) else RECORDS
 THEIRS = (os.path.join(ROOT, "external", "clausecker-dobutsu", "probe"),
           os.path.join(ROOT, "external", "clausecker-dobutsu", "dobutsu.tb"))
 INITIAL = "S/gle/-c-/-C-/ELG/-"
