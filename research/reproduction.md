@@ -132,7 +132,15 @@ link with `tbaccess.o poscode.o moves.o position.o notation.o validation.o unmov
 
 The Rust solver (`solver/`) independently re-derives the tablebase: enumerate canonical
 reachable positions (turn + left-right folded) and fill distance-to-mate by retrograde
-analysis. Validated against clausecker (initial = −78; 4,911-position spot-check, 0 mismatches).
+analysis. Validated against clausecker with `tools/verify_tb.py`, which walks positions
+reachable from the start and compares both tablebases on each one: **6,000 positions, 0
+mismatches on result and distance-to-mate** (4 child-only positions clausecker rejects
+standalone are skipped). The initial position and its four first moves match clausecker's
+DTM to the ply.
+
+The explorer serves this tablebase directly: `solver/src/bin/tbprobe.rs` loads the saved
+records and answers the same stdin/stdout JSON protocol as the clausecker probe, so
+`explorer/serve.py` runs on our own solve once `solver/dobutsu.tb.bin` exists.
 
 - **Standard game:** 213,993,386 canonical positions, initial −78, max DTM 173, draws 2,674,649.
 - **No-drops ablation** (`--no-drops`: captured pieces leave the board as in chess):

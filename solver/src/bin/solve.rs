@@ -148,9 +148,18 @@ fn main() {
 
     // ---- clausecker spot-check (standard variant only) ----
     if !no_drops {
-        let probe_bin = args.get(1).filter(|a| !a.starts_with("--")).map(String::as_str)
+        // Positional args = non-flag tokens, excluding the path that follows
+        // --save (else `solve --save out.bin` would feed our own file to the
+        // clausecker probe as its tablebase and every lookup would mismatch).
+        let save_idx = args.iter().position(|a| a == "--save");
+        let positional: Vec<&str> = args.iter().enumerate()
+            .filter(|(i, a)| *i != 0 && !a.starts_with("--")
+                && save_idx.map_or(true, |si| *i != si + 1))
+            .map(|(_, a)| a.as_str())
+            .collect();
+        let probe_bin = positional.first().copied()
             .unwrap_or("../external/clausecker-dobutsu/probe");
-        let tb = args.get(2).filter(|a| !a.starts_with("--")).map(String::as_str)
+        let tb = positional.get(1).copied()
             .unwrap_or("../external/clausecker-dobutsu/dobutsu.tb");
         if let Ok(mut child) = Command::new(probe_bin).arg(tb)
             .stdin(Stdio::piped()).stdout(Stdio::piped()).spawn()
