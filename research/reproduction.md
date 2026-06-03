@@ -128,6 +128,23 @@ Build (inside the clone): `cp ../../tools/find_positions.c .`, compile with the 
 link with `tbaccess.o poscode.o moves.o position.o notation.o validation.o unmoves.o` and
 `-llzma`, then `./find_positions dobutsu.tb` (~30 s).
 
+## Our own tablebase + drops ablation (solver/)
+
+The Rust solver (`solver/`) independently re-derives the tablebase: enumerate canonical
+reachable positions (turn + left-right folded) and fill distance-to-mate by retrograde
+analysis. Validated against clausecker (initial = −78; 4,911-position spot-check, 0 mismatches).
+
+- **Standard game:** 213,993,386 canonical positions, initial −78, max DTM 173, draws 2,674,649.
+- **No-drops ablation** (`--no-drops`: captured pieces leave the board as in chess):
+  **797,658 positions** (~270× smaller), initial value **0 (draw)**, max DTM **37 plies**,
+  draw rate 4.88%. So removing drops turns a 247M-position, 173-ply, second-player-win game
+  into a sub-million-position, 37-ply **draw** — direct evidence that the drop rule is what
+  makes the game deep (article §4).
+
+  Caveat: the no-drops variant has no external oracle (clausecker is drops-only). It uses the
+  same retrograde machinery validated on the standard game, with a minimal rules change
+  (no drop moves; captures vanish instead of entering the hand).
+
 ## Not yet reproduced (optional)
 
 - Independent confirmation of the 246,803,167 *reachable* count: clausecker counts all legal

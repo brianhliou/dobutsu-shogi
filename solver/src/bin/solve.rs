@@ -1,27 +1,31 @@
 //! Solve the game: enumerate every reachable (canonical) position, then fill its
 //! distance-to-mate by retrograde analysis. Values are from the side-to-move's
-//! view: +d = win in d plies, -d = loss in d plies, 0 = draw. The initial
-//! position should come out -78 (Sente to move, loses in 78 = Gote wins in 78).
-//! Spot-checks a sample against clausecker's probe.
+//! view: +d = win in d plies, -d = loss in d plies, 0 = draw. The standard game's
+//! initial position comes out -78 (Gote wins in 78). With `--no-drops`, solves the
+//! variant where captured pieces leave the game (the §4 ablation).
 //!
-//!   cargo run --release --bin solve [PROBE_BIN] [TABLEBASE]
+//!   cargo run --release --bin solve              # standard, spot-checks vs clausecker
+//!   cargo run --release --bin solve -- --no-drops
 
 use std::collections::{HashMap, VecDeque};
 use std::env;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 
-use dobutsu::{canonical_key, format, parse, unpack, Position};
+use dobutsu::{canonical_key, format, parse, unpack, Move, Position};
 
 const INIT: &str = "S/gle/-c-/-C-/ELG/-";
 const UNKNOWN: i16 = 0;
 
-fn terminal_win(p: &Position, ms: &[dobutsu::Move]) -> bool {
-    ms.iter().any(|m| p.is_terminal_win_move(m))
-}
-
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    let no_drops = args.iter().any(|a| a == "--no-drops");
+    let gen = |p: &Position| -> Vec<Move> { if no_drops { p.moves_nd() } else { p.moves() } };
+    let mk = |p: &Position, m: &Move| -> Position { if no_drops { p.make_nd(m) } else { p.make(m) } };
+    let is_terminal = |p: &Position, ms: &[Move]| ms.iter().any(|m| p.is_terminal_win_move(m));
+
     let t0 = std::time::Instant::now();
+    eprintln!("variant: {}", if no_drops { "NO-DROPS" } else { "standard" });
 
     // ---- enumerate canonical reachable positions, assigning dense ids ----
     let init_key = canonical_key(&parse(INIT).unwrap());
@@ -33,12 +37,12 @@ fn main() {
     q.push_back(init_key);
     while let Some(k) = q.pop_front() {
         let p = unpack(k);
-        let ms = p.moves();
-        if terminal_win(&p, &ms) {
-            continue; // terminal: not expanded
+        let ms = gen(&p);
+        if is_terminal(&p, &ms) {
+            continue;
         }
         for m in &ms {
-            let ck = canonical_key(&p.make(m));
+            let ck = canonical_key(&mk(&p, m));
             if !index.contains_key(&ck) {
                 index.insert(ck, keys.len() as u32);
                 keys.push(ck);
@@ -56,20 +60,20 @@ fn main() {
     let mut no_move = 0u64;
     for id in 0..n {
         let p = unpack(keys[id]);
-        let ms = p.moves();
-        if terminal_win(&p, &ms) {
+        let ms = gen(&p);
+        if is_terminal(&p, &ms) {
             values[id] = 1;
         } else if ms.is_empty() {
-            values[id] = -2; // no legal move = loss (should be unreachable)
+            values[id] = -2; // no legal move = loss
             no_move += 1;
         } else {
             unknown.push(id as u32);
         }
     }
-    eprintln!("[{:?}] terminal wins {}, no-move {no_move}, unknown {}",
+    eprintln!("[{:?}] terminal-win {}, no-move {no_move}, unknown {}",
         t0.elapsed(), n as u64 - unknown.len() as u64 - no_move, unknown.len());
 
-    // ---- retrograde fixpoint (Jacobi: decide on prior-round values only) ----
+    // ---- retrograde fixpoint (Jacobi: decide on prior-round values) ----
     let mut round = 0;
     loop {
         round += 1;
@@ -77,11 +81,11 @@ fn main() {
         let mut next: Vec<u32> = Vec::with_capacity(unknown.len() / 2);
         for &id in &unknown {
             let p = unpack(keys[id as usize]);
-            let mut best_win: Option<i16> = None; // fastest losing successor -> our win
-            let mut worst_loss: i16 = 0; // slowest winning successor -> our loss delay
+            let mut best_win: Option<i16> = None;
+            let mut worst_loss: i16 = 0;
             let mut any_unknown = false;
-            for m in &p.moves() {
-                let v = values[*index.get(&canonical_key(&p.make(m))).unwrap() as usize];
+            for m in &gen(&p) {
+                let v = values[*index.get(&canonical_key(&mk(&p, m))).unwrap() as usize];
                 if v == UNKNOWN {
                     any_unknown = true;
                 } else if v < 0 {
@@ -104,7 +108,9 @@ fn main() {
             values[*id as usize] = *v;
         }
         unknown = next;
-        eprintln!("[{:?}] round {round}: decided {decided}, remaining {}", t0.elapsed(), unknown.len());
+        if round % 10 == 1 || decided == 0 {
+            eprintln!("[{:?}] round {round}: decided {decided}, remaining {}", t0.elapsed(), unknown.len());
+        }
         if decided == 0 {
             break;
         }
@@ -117,50 +123,48 @@ fn main() {
     for &v in &values {
         if v > 0 { w += 1; maxdtm = maxdtm.max(v); } else if v < 0 { l += 1; } else { d += 1; }
     }
-    println!("positions {n}");
-    println!("initial value: {} (expect -78)", values[0]);
-    println!("win {w}  loss {l}  draw {d}  (unresolved->draw {draws})  max-dtm {maxdtm}");
+    println!("=== variant: {} ===", if no_drops { "NO-DROPS" } else { "standard" });
+    println!("positions     {n}");
+    println!("initial value {}", values[0]);
+    println!("win {w}  loss {l}  draw {d}  (unresolved->draw {draws})");
+    println!("draw rate     {:.2}%", 100.0 * d as f64 / n as f64);
+    println!("max DTM       {maxdtm} plies");
 
-    // ---- spot-check vs clausecker ----
-    let args: Vec<String> = env::args().collect();
-    let probe_bin = args.get(1).map(String::as_str).unwrap_or("../external/clausecker-dobutsu/probe");
-    let tb = args.get(2).map(String::as_str).unwrap_or("../external/clausecker-dobutsu/dobutsu.tb");
-    if let Ok(mut child) = Command::new(probe_bin).arg(tb)
-        .stdin(Stdio::piped()).stdout(Stdio::piped()).spawn()
-    {
-        let mut cin = child.stdin.take().unwrap();
-        let mut cout = BufReader::new(child.stdout.take().unwrap());
-        let (mut checked, mut mismatch, mut skipped) = (0u64, 0u64, 0u64);
-        let step = (n / 5000).max(1);
-        let mut i = 0;
-        while i < n {
-            let p = unpack(keys[i]);
-            writeln!(cin, "{}", format(&p)).unwrap();
-            cin.flush().unwrap();
-            let mut resp = String::new();
-            cout.read_line(&mut resp).unwrap();
-            if resp.contains("\"error\"") {
-                skipped += 1;
-            } else {
-                // parse "result":"X" and "dtm":N from the value object
-                let ours = values[i];
-                let res = resp.split("\"result\":\"").nth(1).and_then(|s| s.split('"').next()).unwrap_or("");
-                let dtm: i64 = resp.split("\"dtm\":").nth(1)
-                    .and_then(|s| s.split(|c: char| !c.is_ascii_digit() && c != '-').next())
-                    .and_then(|s| s.parse().ok()).unwrap_or(0);
-                let theirs: i64 = match res { "win" => dtm, "loss" => -dtm, _ => 0 };
-                if theirs != ours as i64 {
-                    if mismatch < 10 {
-                        eprintln!("MISMATCH {}: ours={ours} clausecker={theirs} ({res} {dtm})", format(&p));
+    // ---- clausecker spot-check (standard variant only) ----
+    if !no_drops {
+        let probe_bin = args.get(1).filter(|a| !a.starts_with("--")).map(String::as_str)
+            .unwrap_or("../external/clausecker-dobutsu/probe");
+        let tb = args.get(2).filter(|a| !a.starts_with("--")).map(String::as_str)
+            .unwrap_or("../external/clausecker-dobutsu/dobutsu.tb");
+        if let Ok(mut child) = Command::new(probe_bin).arg(tb)
+            .stdin(Stdio::piped()).stdout(Stdio::piped()).spawn()
+        {
+            let mut cin = child.stdin.take().unwrap();
+            let mut cout = BufReader::new(child.stdout.take().unwrap());
+            let (mut checked, mut mismatch, mut skipped) = (0u64, 0u64, 0u64);
+            let mut i = 0;
+            let step = (n / 5000).max(1);
+            while i < n {
+                writeln!(cin, "{}", format(&unpack(keys[i]))).unwrap();
+                cin.flush().unwrap();
+                let mut resp = String::new();
+                cout.read_line(&mut resp).unwrap();
+                if resp.contains("\"error\"") {
+                    skipped += 1;
+                } else {
+                    let res = resp.split("\"result\":\"").nth(1).and_then(|s| s.split('"').next()).unwrap_or("");
+                    let dtm: i64 = resp.split("\"dtm\":").nth(1)
+                        .and_then(|s| s.split(|c: char| !c.is_ascii_digit() && c != '-').next())
+                        .and_then(|s| s.parse().ok()).unwrap_or(0);
+                    let theirs: i64 = match res { "win" => dtm, "loss" => -dtm, _ => 0 };
+                    if theirs != values[i] as i64 {
+                        mismatch += 1;
                     }
-                    mismatch += 1;
+                    checked += 1;
                 }
-                checked += 1;
+                i += step;
             }
-            i += step;
+            println!("clausecker spot-check: checked {checked}, mismatches {mismatch}, skipped {skipped}");
         }
-        println!("clausecker spot-check: checked {checked}, mismatches {mismatch}, skipped(invalid) {skipped}");
-    } else {
-        eprintln!("(probe not found; skipped clausecker spot-check)");
     }
 }

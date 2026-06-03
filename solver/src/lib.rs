@@ -107,6 +107,19 @@ impl Position {
     /// All pseudo-legal moves for the side to move (board steps + drops).
     pub fn moves(&self) -> Vec<Move> {
         let mut out = Vec::with_capacity(16);
+        self.board_moves(&mut out);
+        self.drop_moves(&mut out);
+        out
+    }
+
+    /// Board steps only — the move set of the no-drops variant.
+    pub fn moves_nd(&self) -> Vec<Move> {
+        let mut out = Vec::with_capacity(12);
+        self.board_moves(&mut out);
+        out
+    }
+
+    fn board_moves(&self, out: &mut Vec<Move>) {
         let me = self.turn;
         for sq in 0..12u8 {
             let (pc, o) = match self.board[sq as usize] {
@@ -133,6 +146,10 @@ impl Position {
                 out.push(Move { piece: pc, from: Some(sq), to: nsq, capture, promote });
             }
         }
+    }
+
+    fn drop_moves(&self, out: &mut Vec<Move>) {
+        let me = self.turn;
         for (i, &pc) in HAND_PIECES.iter().enumerate() {
             if self.hand(me)[i] == 0 {
                 continue;
@@ -143,7 +160,6 @@ impl Position {
                 }
             }
         }
-        out
     }
 
     /// Apply a move, returning the resulting position (turn flipped). A captured
@@ -171,6 +187,19 @@ impl Position {
                 p.board[mv.to as usize] = Some((mv.piece, me));
             }
         }
+        p.turn = me.flip();
+        p
+    }
+
+    /// No-drops variant of `make`: a captured (non-lion) piece leaves the game
+    /// rather than entering the hand. Moves are always board steps here.
+    pub fn make_nd(&self, m: &Move) -> Position {
+        let mut p = *self;
+        let me = self.turn;
+        let sq = m.from.expect("no-drops move is always a board move");
+        p.board[sq as usize] = None;
+        let placed = if m.promote { Piece::Hen } else { m.piece };
+        p.board[m.to as usize] = Some((placed, me));
         p.turn = me.flip();
         p
     }

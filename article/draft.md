@@ -112,6 +112,8 @@ In most games material only drains away. Captures thin the board, the endgame is
 
 Drops invert that. A captured piece comes back in the captor's hand, so the eight pieces keep circulating instead of disappearing, and the board never simplifies. It shows in the numbers: in roughly one in six won positions, the side to move wins despite having fewer pieces, so a material lead guarantees nothing here.
 
+To check that drops are the cause, I solved the same game with the rule removed, so captured pieces leave the board as in chess. It collapses. The reachable positions fall from hundreds of millions to under a million, the deepest forced win drops from 173 plies to 37, and the opening is no longer a win at all: with no drops, best play is a draw. The depth was the drop rule the whole time.
+
 ---
 
 The point generalizes: depth in a small abstract game comes less from board size than from whether material recirculates. A drop rule, or any mechanism that returns captured pieces to play, can keep a tiny game sharp where a pure-subtraction game would collapse into a draw.
