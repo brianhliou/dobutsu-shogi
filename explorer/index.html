@@ -5,21 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dōbutsu Shōgi, Solved — Interactive Tablebase Explorer</title>
 <meta name="description" content="Dōbutsu Shōgi (動物将棋, animal shogi) is a 3×4 children's shogi that is strongly solved: with perfect play the second player wins in 78 plies. Explore every one of 213,993,386 positions in a complete endgame tablebase.">
-<link rel="canonical" href="https://dobutsu-shogi-production.up.railway.app/">
+<link rel="canonical" href="https://dobutsu.brianhliou.com/">
 <link rel="icon" href="/emoji/lion.svg">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://dobutsu-shogi-production.up.railway.app/">
+<meta property="og:url" content="https://dobutsu.brianhliou.com/">
 <meta property="og:title" content="Dōbutsu Shōgi, Solved — Interactive Tablebase Explorer">
 <meta property="og:description" content="A 3×4 children's shogi, completely solved. The second player wins in 78 plies. Explore every position under perfect play.">
-<meta property="og:image" content="https://dobutsu-shogi-production.up.railway.app/og.png">
+<meta property="og:image" content="https://dobutsu.brianhliou.com/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Dōbutsu Shōgi, Solved — Interactive Tablebase Explorer">
 <meta name="twitter:description" content="A 3×4 children's shogi, completely solved. The second player wins in 78 plies. Explore every position under perfect play.">
-<meta name="twitter:image" content="https://dobutsu-shogi-production.up.railway.app/og.png">
+<meta name="twitter:image" content="https://dobutsu.brianhliou.com/og.png">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"Dōbutsu Shōgi Tablebase Explorer","applicationCategory":"GameApplication","operatingSystem":"Web","url":"https://dobutsu-shogi-production.up.railway.app/","description":"Interactive complete endgame tablebase for Dōbutsu Shōgi (animal shogi), a strongly solved 3×4 children's shogi.","author":{"@type":"Person","name":"Brian Liou","url":"https://brianhliou.com"},"isBasedOn":"https://github.com/brianhliou/dobutsu-shogi"}
+{"@context":"https://schema.org","@type":"WebApplication","name":"Dōbutsu Shōgi Tablebase Explorer","applicationCategory":"GameApplication","operatingSystem":"Web","url":"https://dobutsu.brianhliou.com/","description":"Interactive complete endgame tablebase for Dōbutsu Shōgi (animal shogi), a strongly solved 3×4 children's shogi.","author":{"@type":"Person","name":"Brian Liou","url":"https://brianhliou.com"},"isBasedOn":"https://github.com/brianhliou/dobutsu-shogi"}
 </script>
 <script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');</script>
 <style>
@@ -149,8 +149,9 @@
     <span class="tagline">A 3×4 children's shogi, played to the last move.</span>
     <nav class="hlinks">
       <button class="navbtn" id="howBtn">How it works</button>
-      <a href="https://brianhliou.com/">Brian Liou</a>
+      <a href="https://brianhliou.com/posts/dobutsu-shogi/">Write-up</a>
       <a href="https://github.com/brianhliou/dobutsu-shogi">GitHub</a>
+      <a href="https://brianhliou.com/">Brian Liou</a>
     </nav>
   </header>
 
@@ -186,8 +187,8 @@
         children: four piece types, captured pieces return to play as drops, and you win by taking the
         Lion or marching your own Lion to the far rank. It is <strong>strongly solved</strong>: with
         perfect play the <strong>second player wins in 78 plies</strong>. This explorer is backed by a
-        complete endgame tablebase — all <strong>213,993,386</strong> reachable positions, each
-        labelled win, loss, or draw with its exact distance to mate.</p>
+        complete endgame tablebase — all <strong>213,993,386</strong> distinct positions (symmetry-folded),
+        each labelled win, loss, or draw with its exact distance to mate.</p>
       <h3>How to read it</h3>
       <div class="legend">
         <span><i class="win"></i> winning</span>
@@ -201,7 +202,8 @@
       <p>The tablebase is computed from scratch (a Rust rules engine and retrograde solver) and verified
         move-for-move against the <a href="https://github.com/clausecker/dobutsu">clausecker/dobutsu</a>
         engine, then served from a 333 MB compact table.
-        <a href="https://github.com/brianhliou/dobutsu-shogi">Code &amp; write-up on GitHub</a>.</p>
+        Full write-up: <a href="https://brianhliou.com/posts/dobutsu-shogi/">Solving Dōbutsu Shōgi</a>;
+        <a href="https://github.com/brianhliou/dobutsu-shogi">code on GitHub</a>.</p>
       <p class="credit">Animal glyphs: Twemoji (CC-BY 4.0). Game first solved by Tetsuro Tanaka (2009).</p>
     </div>
   </div>

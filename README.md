@@ -10,6 +10,9 @@ player Madoka Kitao. It was **strongly solved** by Tetsuro Tanaka (University of
 game comes from shogi's **drop rule** (captured pieces return to play) — the same insight
 that makes it interesting as a design study.
 
+**Live:** interactive tablebase explorer → **<https://dobutsu.brianhliou.com>** ·
+article → **<https://brianhliou.com/posts/dobutsu-shogi/>**
+
 ## Why this repo exists
 
 English coverage of Dōbutsu Shōgi is either (a) rules-and-history SEO, or (b) a terse

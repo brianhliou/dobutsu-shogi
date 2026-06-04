@@ -6,6 +6,10 @@ description: "Dōbutsu shōgi, a children's shogi variant, is strongly solved: t
 ---
 
 <!-- DRAFT: 4 sections. Strip HTML comments on publish. -->
+<!-- PUBLISHED 2026-06-04 at https://brianhliou.com/posts/dobutsu-shogi/ (blog repo: brianhliou.github.io,
+     _posts/2026-06-04-dobutsu-shogi.md). This file is the canonical authoring source; the published copy
+     adds the live explorer embed (https://dobutsu.brianhliou.com/) and uses /assets/projects/dobutsu-shogi/. -->
+<!-- Live explorer: https://dobutsu.brianhliou.com/  ·  source assets: assets/diagrams/ -->
 
 Dōbutsu shōgi ("animal chess") is a children's shogi game on a 3×4 board with eight pieces. It has been completely solved: with perfect play, the player who moves first loses.
 
