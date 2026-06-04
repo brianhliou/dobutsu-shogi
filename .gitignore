@@ -7,6 +7,9 @@
 .idea/
 .vscode/
 
+# Local agent config (never public)
+.claude/settings.local.json
+
 # Python (for future solver/experiment work)
 __pycache__/
 *.pyc

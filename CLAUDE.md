@@ -8,9 +8,9 @@
 - **Is:** a focused study of Dōbutsu Shōgi — Tanaka's 2009 strong solution, the math behind
   it, and a correct, well-cited English explainer. Distribution targets: brianhliou.com,
   Reddit, YouTube.
-- **Isn't (yet):** a game-design project. The "design your own animal game" thread lives in
-  `~/projects/life-os/explorations/{dobutsu-for-chess,animal-ecology-game}.md` and will get
-  its own repo if/when it forms. Keep that out of here unless it directly serves the article.
+- **Isn't (yet):** a game-design project. The "design your own animal game" thread is tracked
+  separately and will get its own repo if/when it forms. Keep that out of here unless it
+  directly serves the article.
 
 ## Working method (the "scientist" contract)
 
