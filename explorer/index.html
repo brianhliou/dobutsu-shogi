@@ -40,7 +40,7 @@
            background:#fff; border-radius:7px; cursor:pointer; }
   button:hover { background:#f3f3f3; }
   .main { flex:1 1 auto; min-height:0; display:flex; gap:22px; align-items:stretch; }
-  .left { flex:0 0 auto; display:flex; flex-direction:column; gap:7px; min-height:0; }
+  .left { order:2; margin:0 auto; flex:0 0 auto; display:flex; flex-direction:column; gap:7px; min-height:0; }
   .board-wrap { flex:1 1 auto; min-height:0; display:flex; justify-content:center; align-items:center; }
 
   .tray { display:flex; align-items:center; gap:7px; min-height:46px; padding:5px 10px;
@@ -65,7 +65,7 @@
   #board.grab { cursor:grab; }
   #board.grab:active { cursor:grabbing; }
 
-  .panel { flex:1 1 300px; min-width:258px; display:flex; flex-direction:column; min-height:0;
+  .panel { order:3; flex:0 0 252px; min-width:0; display:flex; flex-direction:column; min-height:0;
            border:1px solid #e7e7ea; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.05); }
   .verdict { padding:13px 16px; font-weight:700; font-size:1.06rem; display:flex;
              align-items:baseline; gap:8px; border-left:5px solid var(--draw); }
@@ -97,7 +97,7 @@
   .byline a { color:var(--accent); text-decoration:none; font-weight:600; }
   .byline a:hover { text-decoration:underline; }
   .byline .dot { color:#cbb98a; margin:0 7px; }
-  .about { flex:0 1 300px; min-width:228px; min-height:0; overflow-y:auto; padding-right:2px; font-size:.9rem; }
+  .about { order:1; flex:0 0 312px; min-width:228px; min-height:0; overflow-y:auto; padding-right:6px; font-size:.9rem; }
   .about h2 { font-size:.95rem; margin:0 0 5px; }
   .about p { margin:0 0 13px; color:#333; }
   .about a { color:var(--accent); font-weight:600; text-decoration:none; }
@@ -113,8 +113,9 @@
   @media (max-width:880px), (max-height:560px) {
     body { overflow:auto; height:auto; }
     .main { flex-wrap:wrap; }
+    .left { order:0; margin:0; } .panel { order:1; } .about { order:2; }
     #board { height:auto; width:344px; max-height:none; }
-    .panel, .about { flex-basis:100%; }
+    .panel { flex-basis:100%; } .about { flex-basis:100%; }
     .moves { max-height:60vh; }
   }
 </style>
