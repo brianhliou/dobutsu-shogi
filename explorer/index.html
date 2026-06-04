@@ -73,18 +73,7 @@
   .main { flex:1 1 auto; min-height:0; display:flex; gap:20px; align-items:stretch; }
   .left { flex:1 1 auto; min-width:0; min-height:0; display:flex; justify-content:center; align-items:center; }
   .boardbox { display:flex; flex-direction:column; gap:7px; min-height:0; width:fit-content; }
-  .board-wrap { position:relative; display:flex; justify-content:center; }
-  .winbanner { position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:10; pointer-events:none; }
-  .winbanner[hidden] { display:none; }
-  .wb-card { pointer-events:auto; background:rgba(255,255,255,.97); border:1px solid #e7dcc0; border-radius:14px;
-             box-shadow:0 10px 30px rgba(0,0,0,.22); padding:11px 18px 13px; text-align:center; animation:wbin .35s ease; }
-  .wb-trophy { font-size:1.7rem; line-height:1; }
-  .wb-title { font-weight:800; font-size:1.06rem; margin-top:2px; }
-  .wb-sub { color:var(--muted); font-size:.82rem; }
-  .wb-again { margin-top:8px; font:inherit; font-size:.84rem; font-weight:600; padding:4px 12px; border-radius:7px;
-              border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; }
-  .wb-again:hover { filter:brightness(1.06); }
-  @keyframes wbin { from { opacity:0; transform:translateY(-8px) scale(.95); } to { opacity:1; transform:none; } }
+  .board-wrap { display:flex; justify-content:center; }
   .gameover-note { padding:16px; color:var(--muted); font-size:.9rem; text-align:center; }
   #board { display:block; height:min(760px, calc(100vh - 190px));
            width:calc(min(760px, calc(100vh - 190px)) * 326 / 422); touch-action:none; }
@@ -169,7 +158,7 @@
     <section class="left">
       <div class="boardbox">
         <div class="tray" id="trayTop"></div>
-        <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg><div class="winbanner" id="winBanner" hidden></div></div>
+        <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg></div>
         <div class="tray" id="trayBottom"></div>
       </div>
     </section>
@@ -498,7 +487,7 @@ function render(data) {
 }
 
 async function showPos(pos) {
-  gameOver = null; hideWinBanner();
+  gameOver = null;
   const data = await (await fetch("/api?pos=" + encodeURIComponent(pos))).json();
   if (data.error) { alert(data.error); return; }
   hoverTo = null; hoverMove = null; lift = null; clearSelection();
@@ -545,20 +534,13 @@ function renderGameOver() {
   const v = document.getElementById("verdict");
   v.className = "verdict win";
   v.innerHTML = `🏆 ${who} wins <small>${o.reason === "lion" ? "lion captured" : "Try completed"} · game over</small>`;
-  document.getElementById("moves").innerHTML = `<div class="gameover-note">Game over. Use ◀ or Reset to keep exploring.</div>`;
+  document.getElementById("moves").innerHTML = `<div class="gameover-note">Game over — no more positions. Use ◀ or Reset to keep exploring.</div>`;
   renderLine();
-  const b = document.getElementById("winBanner");
-  b.innerHTML = `<div class="wb-card"><div class="wb-trophy">🏆</div><div class="wb-title">${who} wins</div>`
-    + `<div class="wb-sub">${o.reason === "lion" ? "Lion captured" : "Try completed"}</div>`
-    + `<button class="wb-again" id="wbAgain">Play again</button></div>`;
-  b.hidden = false;
-  document.getElementById("wbAgain").onclick = resetGame;
 }
 
-function hideWinBanner() { const b = document.getElementById("winBanner"); if (b) b.hidden = true; }
 function resetGame() {
   line = [{ pos: INITIAL, move: null, from: null, to: null }]; cursor = 0;
-  lastMove = null; gameOver = null; hideWinBanner(); showPos(INITIAL);
+  lastMove = null; gameOver = null; showPos(INITIAL);
 }
 
 // jump the cursor to a ply already in the line
@@ -568,7 +550,7 @@ function jumpTo(i) {
   const node = line[i];
   lastMove = node.move ? { from: node.from, to: node.to } : null;
   if (node.terminal) { gameOver = node.over; renderGameOver(); }
-  else { gameOver = null; hideWinBanner(); showPos(node.pos); }
+  else { gameOver = null; showPos(node.pos); }
 }
 
 function renderLine() {
