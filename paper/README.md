@@ -1,14 +1,8 @@
 # paper/ — primary source
 
-The canonical reference and its companion materials, committed verbatim so the analysis is
-reproducible from a fixed copy.
-
-## Files
-
-- `sources/tanaka-2009-paper.pdf` — the paper (8 pages as rendered; pulled 2026-06-01 from
-  the author's site). Japanese.
-- `sources/tanaka-2009-slides.pdf` — companion slide deck dated 2009-06-26. Japanese.
-- `tanaka-2009-translation.md` — full English translation + our annotations. **Start here.**
+The canonical reference for this project. The PDF and a working translation are
+kept locally but not redistributed here — they're third-party copyrighted
+material. This file records the citation and where to read the original.
 
 ## Citation
 
@@ -20,7 +14,12 @@ NII permalink: <http://id.nii.ac.jp/1001/00062415/>
 - Author's Dōbutsu Shōgi page: <https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/dobutsushogi/>
 - Author's publications: <https://www.tanaka.ecc.u-tokyo.ac.jp/ktanaka/papers.html>
 
-## Why these are committed
+## Our independent work
 
-Academic personal-site PDFs disappear. The whole project rests on this source, so it lives in
-the repo. If the upstream URL rots, this copy is ground truth.
+The analysis stands on its own, without reproducing the source:
+
+- `research/reproduction.md` — we regenerated the full tablebase from scratch and
+  confirmed Tanaka's headline results (initial position `#-78`, max distance-to-mate
+  173 plies), validated against the clausecker/dobutsu engine.
+- `solver/` — the from-scratch Rust rules engine, solver, and probe.
+- `article/` — the English write-up.

@@ -33,5 +33,9 @@ article/preview.html
 *.bin
 *.ctb
 
+# Third-party copyrighted source — kept local, never redistributed
+paper/sources/
+paper/tanaka-2009-translation.md
+
 # Rust build output
 target/
