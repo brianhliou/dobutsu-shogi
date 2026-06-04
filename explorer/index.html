@@ -59,8 +59,8 @@
   .chip .cnt { font-size:.78rem; font-weight:700; }
   .tray .empty { color:#b9b3a4; font-size:.9rem; }
 
-  #board { display:block; height:min(660px, calc(100vh - 250px));
-           width:calc(min(660px, calc(100vh - 250px)) * 326 / 422); touch-action:none; }
+  #board { display:block; height:min(660px, calc(100vh - 292px));
+           width:calc(min(660px, calc(100vh - 292px)) * 326 / 422); touch-action:none; }
   #board image, #board .pc { pointer-events:none; }
   #board.grab { cursor:grab; }
   #board.grab:active { cursor:grabbing; }
@@ -108,6 +108,12 @@
   .legend i.win { background:var(--win); } .legend i.loss { background:var(--loss); } .legend i.draw { background:#c7cbd1; }
   .site-footer { flex:0 0 auto; color:#9aa0a6; font-size:.74rem; }
   .site-footer a { color:#8a8f98; }
+  .line { flex:0 0 auto; display:flex; align-items:center; gap:2px; overflow-x:auto; white-space:nowrap;
+          padding:5px 2px; border-top:1px solid #eee; font-size:.84rem; }
+  .line .lnum { color:#9aa0a6; margin:0 2px 0 8px; font-variant-numeric:tabular-nums; }
+  .line .ply { font-family:ui-monospace,Menlo,monospace; padding:2px 7px; border-radius:6px; cursor:pointer; color:#333; }
+  .line .ply:hover { background:#f1ede2; }
+  .line .ply.cur { background:var(--accent); color:#fff; }
   .embed .site-header, .embed .about, .embed .site-footer { display:none; }
   /* fall back to normal scrolling on small / short viewports */
   @media (max-width:880px), (max-height:560px) {
@@ -133,7 +139,8 @@
     <div class="left">
       <div class="controls">
         <button id="reset">↺ Reset</button>
-        <button id="back">← Back</button>
+        <button id="back" title="Step back">◀</button>
+        <button id="fwd" title="Step forward">▶</button>
       </div>
       <div class="tray" id="trayTop"></div>
       <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg></div>
@@ -164,6 +171,8 @@
     </aside>
   </main>
 
+  <nav class="line" id="lineBar"></nav>
+
   <footer class="site-footer">
     Built by <a href="https://brianhliou.com">Brian Liou</a>.
     Animal glyphs: <a href="https://github.com/twitter/twemoji">Twemoji</a> (CC-BY 4.0).
@@ -181,7 +190,8 @@ const MOVES = {
   L:["N","NE","E","SE","S","SW","W","NW"], G:["N","E","S","W"],
   E:["NE","SE","SW","NW"], C:["N"], R:["N","NE","NW","E","W","S"]};
 
-let history = [INITIAL];
+let line = [{ pos: INITIAL, move: null, from: null, to: null }]; // played line; ply 0 = start
+let cursor = 0;                // index into `line` of the position shown
 let curParsed = null;          // parsed current position
 let byBoard = {}, byDrop = {}; // drag-target key -> move
 let selected = null;           // sticky selection: {kind:'board',from} | {kind:'hand',piece}
@@ -431,19 +441,51 @@ function render(data) {
       const sq = moveSquares(m.move);
       row.onmouseenter = () => { hoverMove = sq; renderBoard(parsed); };
       row.onmouseleave = () => { hoverMove = null; renderBoard(parsed); };
-      if (m.to) row.onclick = () => { lastMove = { from: sq.from, to: sq.to }; go(m.to, true); };
-      else row.title = "captures the lion / completes a Try — game over";
+      row.onclick = () => playMove(m);
+      if (!m.to) row.title = "captures the lion / completes a Try — game over";
       box.appendChild(row);
     }
   }
 }
 
-async function go(pos, push) {
+async function showPos(pos) {
   const data = await (await fetch("/api?pos=" + encodeURIComponent(pos))).json();
   if (data.error) { alert(data.error); return; }
-  if (push) history.push(pos);
   hoverTo = null; hoverMove = null; lift = null; clearSelection();
   render(data);
+  renderLine();
+}
+
+// play a move: extend the line (truncating any forward moves from a back position)
+function playMove(m) {
+  if (!m.to) { if (curParsed) renderBoard(curParsed); alert("That move wins — the lion is captured (or a Try is completed)."); return; }
+  const sq = moveSquares(m.move);
+  line = line.slice(0, cursor + 1);
+  line.push({ pos: m.to, move: m.move, from: sq.from, to: sq.to });
+  cursor = line.length - 1;
+  lastMove = { from: sq.from, to: sq.to };
+  showPos(m.to);
+}
+
+// jump the cursor to a ply already in the line
+function jumpTo(i) {
+  if (i < 0 || i >= line.length) return;
+  cursor = i;
+  const node = line[i];
+  lastMove = node.move ? { from: node.from, to: node.to } : null;
+  showPos(node.pos);
+}
+
+function renderLine() {
+  let h = "";
+  for (let i = 1; i < line.length; i++) {
+    if (i % 2 === 1) h += `<span class="lnum">${Math.ceil(i / 2)}.</span>`;
+    h += `<span class="ply${i === cursor ? " cur" : ""}" data-i="${i}">${line[i].move}</span>`;
+  }
+  const bar = document.getElementById("lineBar");
+  bar.innerHTML = h || `<span class="lnum">start position — play a move</span>`;
+  const cur = bar.querySelector(".ply.cur");
+  if (cur) cur.scrollIntoView({ inline: "nearest", block: "nearest" });
 }
 
 // ---- selection + drag: click a piece to keep its moves shown; click a target to move ----
@@ -488,10 +530,8 @@ function sameSel(a, b) {
                         : (a.piece === b.piece && a.owner === b.owner));
 }
 function execMove(m) {
-  const sq = moveSquares(m.move);
   clearSelection(); hoverTo = null; press = null; lift = null;
-  if (m.to) { lastMove = { from: sq.from, to: sq.to }; go(m.to, true); }
-  else { if (curParsed) renderBoard(curParsed); alert("That move wins — the lion is captured (or a Try is completed)."); }
+  playMove(m);
 }
 
 document.addEventListener("pointerdown", e => {
@@ -540,11 +580,15 @@ window.addEventListener("pointerup", e => {
 });
 window.addEventListener("pointercancel", () => { press = null; hoverTo = null; lift = null; if (curParsed) renderBoard(curParsed); });
 
-document.getElementById("reset").onclick = () => { history = [INITIAL]; lastMove = null; go(INITIAL, false); };
-document.getElementById("back").onclick = () => {
-  if (history.length > 1) { history.pop(); lastMove = null; go(history[history.length - 1], false); }
+document.getElementById("reset").onclick = () => {
+  line = [{ pos: INITIAL, move: null, from: null, to: null }]; cursor = 0; lastMove = null; showPos(INITIAL);
 };
-go(INITIAL, false);
+document.getElementById("back").onclick = () => jumpTo(cursor - 1);
+document.getElementById("fwd").onclick = () => jumpTo(cursor + 1);
+document.getElementById("lineBar").addEventListener("click", e => {
+  const p = e.target.closest(".ply"); if (p) jumpTo(+p.dataset.i);
+});
+showPos(INITIAL);
 </script>
 </body>
 </html>
