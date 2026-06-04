@@ -75,6 +75,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     self._send(200, "image/svg+xml", fh.read())
             else:
                 self._send(404, "text/plain", b"not found")
+        elif u.path == "/og.png":
+            fp = os.path.join(HERE, "og.png")
+            if os.path.isfile(fp):
+                with open(fp, "rb") as fh:
+                    self._send(200, "image/png", fh.read())
+            else:
+                self._send(404, "text/plain", b"not found")
         else:
             self._send(404, "text/plain", b"not found")
 
