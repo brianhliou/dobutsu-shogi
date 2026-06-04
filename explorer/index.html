@@ -30,16 +30,18 @@
     --sente:#fbf5e6; --sente-line:#6f5d33; --gote:#373d47; --gote-line:#20252d;
   }
   * { box-sizing:border-box; }
+  html, body { height:100%; }
   body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; color:var(--ink);
-         margin:24px auto; max-width:880px; padding:0 16px; line-height:1.5; }
-  h1 { font-size:1.3rem; margin:0 0 2px; }
-  .sub { color:var(--muted); font-size:.85rem; margin-bottom:16px; }
-  .controls { margin:0 0 14px; }
-  button { font:inherit; padding:5px 12px; margin-right:8px; border:1px solid #d4d4d8;
+         margin:0; padding:12px 18px 10px; line-height:1.5; display:flex; flex-direction:column;
+         gap:9px; overflow:hidden; }
+  h1 { margin:0; }
+  .controls { margin:0; display:flex; gap:8px; }
+  button { font:inherit; padding:4px 11px; border:1px solid #d4d4d8;
            background:#fff; border-radius:7px; cursor:pointer; }
   button:hover { background:#f3f3f3; }
-  .wrap { display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start; }
-  .left { flex:0 0 auto; width:344px; }
+  .main { flex:1 1 auto; min-height:0; display:flex; gap:22px; align-items:stretch; }
+  .left { flex:0 0 auto; display:flex; flex-direction:column; gap:7px; min-height:0; }
+  .board-wrap { flex:1 1 auto; min-height:0; display:flex; justify-content:center; align-items:center; }
 
   .tray { display:flex; align-items:center; gap:7px; min-height:46px; padding:5px 10px;
           border:1.5px solid #e6e2d6; border-radius:10px; background:#f8f5ec; transition:border-color .15s,box-shadow .15s; }
@@ -57,20 +59,21 @@
   .chip .cnt { font-size:.78rem; font-weight:700; }
   .tray .empty { color:#b9b3a4; font-size:.9rem; }
 
-  #board { display:block; width:344px; height:auto; touch-action:none; }
+  #board { display:block; height:min(446px, calc(100vh - 270px));
+           width:calc(min(446px, calc(100vh - 270px)) * 326 / 422); touch-action:none; }
   #board image, #board .pc { pointer-events:none; }
   #board.grab { cursor:grab; }
   #board.grab:active { cursor:grabbing; }
 
-  .panel { flex:1 1 280px; min-width:264px; border:1px solid #e7e7ea; border-radius:12px;
-           overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .panel { flex:1 1 300px; min-width:258px; display:flex; flex-direction:column; min-height:0;
+           border:1px solid #e7e7ea; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.05); }
   .verdict { padding:13px 16px; font-weight:700; font-size:1.06rem; display:flex;
              align-items:baseline; gap:8px; border-left:5px solid var(--draw); }
   .verdict small { font-weight:500; color:var(--muted); font-size:.8rem; }
   .verdict.win  { background:var(--winbg);  border-left-color:var(--win); }
   .verdict.loss { background:var(--lossbg); border-left-color:var(--loss); }
   .verdict.draw { background:var(--drawbg); border-left-color:var(--draw); }
-  .moves { max-height:472px; overflow-y:auto; }
+  .moves { flex:1 1 auto; min-height:0; overflow-y:auto; }
   .grouphdr { font-size:.72rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
               color:#fff; padding:4px 16px; }
   .grouphdr.win  { background:var(--win); }
@@ -86,84 +89,79 @@
   .badge.win  { background:var(--win);  color:#fff; }
   .badge.loss { background:var(--loss); color:#fff; }
   .badge.draw { background:#d7dade; color:#333; }
-  /* page chrome */
-  .site-header { margin:6px 0 18px; }
-  .site-header h1 { font-size:1.65rem; margin:0 0 5px; letter-spacing:-.01em; }
-  .tagline { color:var(--muted); font-size:.96rem; margin:0 0 9px; }
-  .byline { font-size:.85rem; margin:0; }
+  /* page chrome — single-viewport, no scroll */
+  .site-header { flex:0 0 auto; display:flex; align-items:baseline; gap:4px 14px; flex-wrap:wrap; }
+  .site-header h1 { font-size:1.3rem; letter-spacing:-.01em; }
+  .tagline { color:var(--muted); font-size:.9rem; margin:0; }
+  .byline { font-size:.83rem; margin:0 0 0 auto; white-space:nowrap; }
   .byline a { color:var(--accent); text-decoration:none; font-weight:600; }
   .byline a:hover { text-decoration:underline; }
-  .byline .dot { color:#cbb98a; margin:0 8px; }
-  .explainer { margin:30px 0 6px; max-width:720px; }
-  .explainer h2 { font-size:1.06rem; margin:22px 0 7px; }
-  .explainer p { margin:0 0 10px; }
-  .explainer a { color:var(--accent); font-weight:600; text-decoration:none; }
-  .explainer a:hover { text-decoration:underline; }
-  .legend { display:flex; flex-wrap:wrap; gap:7px 18px; font-size:.86rem; color:#444; margin:4px 0 12px; }
+  .byline .dot { color:#cbb98a; margin:0 7px; }
+  .about { flex:0 1 300px; min-width:228px; min-height:0; overflow-y:auto; padding-right:2px; font-size:.9rem; }
+  .about h2 { font-size:.95rem; margin:0 0 5px; }
+  .about p { margin:0 0 13px; color:#333; }
+  .about a { color:var(--accent); font-weight:600; text-decoration:none; }
+  .about a:hover { text-decoration:underline; }
+  .legend { display:flex; flex-wrap:wrap; gap:5px 14px; font-size:.84rem; color:#444; margin:0 0 13px; }
   .legend span { display:inline-flex; align-items:center; gap:6px; }
-  .legend i { width:13px; height:13px; border-radius:4px; display:inline-block; }
+  .legend i { width:12px; height:12px; border-radius:4px; display:inline-block; }
   .legend i.win { background:var(--win); } .legend i.loss { background:var(--loss); } .legend i.draw { background:#c7cbd1; }
-  .site-footer { margin:28px 0 10px; padding-top:14px; border-top:1px solid #eee; color:#8a8f98; font-size:.8rem; line-height:1.6; }
-  .site-footer a { color:#6b7280; }
-  .embed .site-header, .embed .explainer, .embed .site-footer { display:none; }
-  .embed body { margin-top:10px; }
+  .site-footer { flex:0 0 auto; color:#9aa0a6; font-size:.74rem; }
+  .site-footer a { color:#8a8f98; }
+  .embed .site-header, .embed .about, .embed .site-footer { display:none; }
+  /* fall back to normal scrolling on small / short viewports */
+  @media (max-width:880px), (max-height:560px) {
+    body { overflow:auto; height:auto; }
+    .main { flex-wrap:wrap; }
+    #board { height:auto; width:344px; max-height:none; }
+    .panel, .about { flex-basis:100%; }
+    .moves { max-height:60vh; }
+  }
 </style>
 </head>
 <body>
   <header class="site-header">
     <h1>Dōbutsu Shōgi, solved</h1>
-    <p class="tagline">A 3×4 children's shogi, completely solved. Explore every position under perfect play.</p>
-    <p class="byline">
-      <a href="https://github.com/brianhliou/dobutsu-shogi">Source on GitHub</a>
-      <span class="dot">·</span>
-      <a href="https://brianhliou.com">brianhliou.com</a>
-    </p>
+    <span class="tagline">A 3×4 children's shogi, played out to the last move.</span>
+    <span class="byline">
+      <a href="https://github.com/brianhliou/dobutsu-shogi">GitHub</a><span class="dot">·</span><a href="https://brianhliou.com">brianhliou.com</a>
+    </span>
   </header>
 
-  <div class="app">
-    <div class="controls">
-      <button id="reset">↺ Reset</button>
-      <button id="back">← Back</button>
-    </div>
-    <div class="wrap">
-      <div class="left">
-        <div class="tray" id="trayTop"></div>
-        <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg></div>
-        <div class="tray" id="trayBottom"></div>
+  <main class="main">
+    <div class="left">
+      <div class="controls">
+        <button id="reset">↺ Reset</button>
+        <button id="back">← Back</button>
       </div>
-      <div class="panel">
-        <div class="verdict" id="verdict">…</div>
-        <div class="moves" id="moves"></div>
+      <div class="tray" id="trayTop"></div>
+      <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg></div>
+      <div class="tray" id="trayBottom"></div>
+    </div>
+    <div class="panel">
+      <div class="verdict" id="verdict">…</div>
+      <div class="moves" id="moves"></div>
+    </div>
+    <aside class="about">
+      <h2>What this is</h2>
+      <p><strong>Dōbutsu Shōgi</strong> (動物将棋, “animal shogi”) is a 3×4 children's shogi. It is
+        <strong>strongly solved</strong>: with perfect play the <strong>second player wins in 78
+        plies</strong>. This explores all 213,993,386 reachable positions under perfect play.</p>
+      <h2>How to read it</h2>
+      <div class="legend">
+        <span><i class="win"></i> winning</span>
+        <span><i class="draw"></i> drawing</span>
+        <span><i class="loss"></i> losing</span>
       </div>
-    </div>
-  </div>
-
-  <section class="explainer">
-    <h2>What this is</h2>
-    <p><strong>Dōbutsu Shōgi</strong> (動物将棋, “animal shogi”) is a 3×4 version of shogi made for
-      children: four piece types, captured pieces return to play as drops, and you win by taking the
-      Lion or marching your own Lion to the far rank. It is <strong>strongly solved</strong>: under
-      perfect play the <strong>second player wins in 78 plies</strong>. This explorer is backed by a
-      complete endgame tablebase: every one of <strong>213,993,386</strong> reachable positions,
-      each labelled win, loss, or draw with its exact distance to mate.</p>
-
-    <h2>How to read it</h2>
-    <div class="legend">
-      <span><i class="win"></i> winning move</span>
-      <span><i class="draw"></i> drawing</span>
-      <span><i class="loss"></i> losing</span>
-    </div>
-    <p>The bar shows who wins from the current position and in how many plies. Moves are grouped and
-      sorted best-first; the number is the distance to mate. The dots on each piece show how it
-      steps. Drag a piece, or click a move in the list, to follow a line.</p>
-
-    <h2>How it was built</h2>
-    <p>The tablebase is computed from scratch (a Rust rules engine and retrograde solver) and verified
-      move-for-move against the <a href="https://github.com/clausecker/dobutsu">clausecker/dobutsu</a>
-      engine. It is packed into a 333 MB table — a minimal perfect hash over the positions plus 9-bit
-      distances — and served behind a small probe API. Code and write-up:
-      <a href="https://github.com/brianhliou/dobutsu-shogi">github.com/brianhliou/dobutsu-shogi</a>.</p>
-  </section>
+      <p>The bar shows who wins and in how many plies; moves are sorted best-first by distance to
+        mate. The dots on each piece show how it steps. Drag a piece, or click a move.</p>
+      <h2>How it was built</h2>
+      <p>Computed from scratch (a Rust retrograde solver), verified against
+        <a href="https://github.com/clausecker/dobutsu">clausecker/dobutsu</a> and packed into a
+        333 MB table behind a probe API.
+        <a href="https://github.com/brianhliou/dobutsu-shogi">Code &amp; write-up</a>.</p>
+    </aside>
+  </main>
 
   <footer class="site-footer">
     Built by <a href="https://brianhliou.com">Brian Liou</a>.
