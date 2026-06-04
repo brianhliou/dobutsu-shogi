@@ -32,21 +32,50 @@
   * { box-sizing:border-box; }
   html, body { height:100%; }
   body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; color:var(--ink);
-         margin:0; padding:12px 18px 10px; line-height:1.5; display:flex; flex-direction:column;
-         gap:9px; overflow:hidden; }
+         margin:0; padding:10px 16px; line-height:1.5; display:flex; flex-direction:column;
+         gap:8px; overflow:hidden; }
   h1 { margin:0; }
-  .controls { margin:0; display:flex; gap:8px; }
   button { font:inherit; padding:4px 11px; border:1px solid #d4d4d8;
            background:#fff; border-radius:7px; cursor:pointer; }
   button:hover { background:#f3f3f3; }
-  .main { flex:1 1 auto; min-height:0; display:flex; gap:22px; align-items:stretch; }
-  .left { order:2; margin:0 auto; flex:0 0 auto; display:flex; flex-direction:column; gap:7px; min-height:0; }
-  .board-wrap { flex:1 1 auto; min-height:0; display:flex; justify-content:center; align-items:center; }
 
-  .tray { display:flex; align-items:center; gap:7px; min-height:46px; padding:5px 10px;
+  /* header */
+  .site-header { flex:0 0 auto; display:flex; align-items:center; gap:4px 14px; flex-wrap:wrap; }
+  .site-header h1 { font-size:1.22rem; letter-spacing:-.01em; }
+  .tagline { color:var(--muted); font-size:.86rem; }
+  .hlinks { margin-left:auto; display:flex; align-items:center; gap:14px; font-size:.84rem; white-space:nowrap; }
+  .hlinks a { color:var(--accent); text-decoration:none; font-weight:600; }
+  .hlinks a:hover { text-decoration:underline; }
+  details.about { position:relative; }
+  details.about > summary { list-style:none; cursor:pointer; color:var(--accent); font-weight:600; }
+  details.about > summary::-webkit-details-marker { display:none; }
+  details.about > summary::after { content:" \25BE"; }
+  .about-body { position:absolute; right:0; top:calc(100% + 8px); z-index:20; width:340px; max-height:72vh;
+                overflow-y:auto; background:#fff; border:1px solid #e3e3e6; border-radius:12px;
+                box-shadow:0 10px 30px rgba(0,0,0,.18); padding:14px 16px; font-weight:400; font-size:.9rem; }
+  .about-body h3 { font-size:.92rem; margin:13px 0 5px; } .about-body h3:first-child { margin-top:0; }
+  .about-body p { margin:0 0 11px; color:#333; }
+  .about-body a { color:var(--accent); font-weight:600; text-decoration:none; }
+  .about-body a:hover { text-decoration:underline; }
+  .about-body .credit { color:#9aa0a6; font-size:.76rem; }
+  .legend { display:flex; flex-wrap:wrap; gap:5px 14px; font-size:.84rem; color:#444; margin:0 0 11px; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { width:12px; height:12px; border-radius:4px; display:inline-block; }
+  .legend i.win { background:var(--win); } .legend i.loss { background:var(--loss); } .legend i.draw { background:#c7cbd1; }
+
+  /* main: board ~2/3 left, panel ~1/3 right */
+  .main { flex:1 1 auto; min-height:0; display:flex; gap:20px; align-items:stretch; }
+  .left { flex:1 1 auto; min-width:0; min-height:0; display:flex; justify-content:center; align-items:center; }
+  .boardbox { display:flex; flex-direction:column; gap:7px; min-height:0; width:fit-content; }
+  .board-wrap { display:flex; justify-content:center; }
+  #board { display:block; height:min(760px, calc(100vh - 190px));
+           width:calc(min(760px, calc(100vh - 190px)) * 326 / 422); touch-action:none; }
+  #board image, #board .pc { pointer-events:none; }
+  #board.grab { cursor:grab; } #board.grab:active { cursor:grabbing; }
+
+  /* trays + hand chips */
+  .tray { display:flex; align-items:center; gap:7px; min-height:44px; padding:5px 10px;
           border:1.5px solid #e6e2d6; border-radius:10px; background:#f8f5ec; transition:border-color .15s,box-shadow .15s; }
-  .tray + .board-wrap { margin-top:8px; }
-  .board-wrap + .tray { margin-top:8px; }
   .tray.active { border-color:var(--accent); box-shadow:0 0 0 3px rgba(217,138,43,.16); }
   .traylbl { font-size:.72rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
              color:#9a8a62; margin-right:4px; }
@@ -59,125 +88,104 @@
   .chip .cnt { font-size:.78rem; font-weight:700; }
   .tray .empty { color:#b9b3a4; font-size:.9rem; }
 
-  #board { display:block; height:min(660px, calc(100vh - 292px));
-           width:calc(min(660px, calc(100vh - 292px)) * 326 / 422); touch-action:none; }
-  #board image, #board .pc { pointer-events:none; }
-  #board.grab { cursor:grab; }
-  #board.grab:active { cursor:grabbing; }
-
-  .panel { order:3; flex:0 0 252px; min-width:0; display:flex; flex-direction:column; min-height:0;
+  /* right panel: verdict, controls + history, ranked move list */
+  .panel { flex:0 0 360px; min-width:300px; display:flex; flex-direction:column; min-height:0;
            border:1px solid #e7e7ea; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.05); }
-  .verdict { padding:13px 16px; font-weight:700; font-size:1.06rem; display:flex;
+  .verdict { flex:0 0 auto; padding:12px 16px; font-weight:700; font-size:1.05rem; display:flex;
              align-items:baseline; gap:8px; border-left:5px solid var(--draw); }
   .verdict small { font-weight:500; color:var(--muted); font-size:.8rem; }
   .verdict.win  { background:var(--winbg);  border-left-color:var(--win); }
   .verdict.loss { background:var(--lossbg); border-left-color:var(--loss); }
   .verdict.draw { background:var(--drawbg); border-left-color:var(--draw); }
+  .histbar { flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:6px 10px;
+             border-top:1px solid #eee; border-bottom:1px solid #eee; background:#fbfaf6; }
+  .controls { display:flex; gap:5px; flex:0 0 auto; }
+  .controls button { padding:3px 9px; font-size:.95rem; line-height:1.1; }
+  .line { flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:1px; overflow-x:auto; white-space:nowrap; font-size:.82rem; }
+  .line .lnum { color:#9aa0a6; margin:0 1px 0 6px; font-variant-numeric:tabular-nums; }
+  .line .ply { font-family:ui-monospace,Menlo,monospace; padding:2px 6px; border-radius:6px; cursor:pointer; color:#333; }
+  .line .ply:hover { background:#efe9da; }
+  .line .ply.cur { background:var(--accent); color:#fff; }
   .moves { flex:1 1 auto; min-height:0; overflow-y:auto; }
-  .grouphdr { font-size:.72rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-              color:#fff; padding:4px 16px; }
-  .grouphdr.win  { background:var(--win); }
-  .grouphdr.loss { background:var(--loss); }
-  .grouphdr.draw { background:var(--draw); }
+  .grouphdr { font-size:.68rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:9px 16px 3px; }
+  .grouphdr.win { color:var(--win); } .grouphdr.loss { color:var(--loss); } .grouphdr.draw { color:var(--muted); }
   .move { display:flex; align-items:center; justify-content:space-between; gap:10px;
-          padding:7px 16px; border-bottom:1px solid #f1f1f3; cursor:pointer; font-size:.95rem; }
+          padding:6px 16px; border-bottom:1px solid #f3f3f5; cursor:pointer; font-size:.94rem; }
   .move:hover { background:#faf7ef; }
   .move.dead { cursor:default; }
   .move .mv { font-family:ui-monospace,Menlo,monospace; }
-  .badge { font-size:.78rem; font-weight:700; padding:2px 9px; border-radius:11px;
-           white-space:nowrap; min-width:34px; text-align:center; }
+  .badge { font-size:.76rem; font-weight:700; padding:2px 9px; border-radius:11px;
+           white-space:nowrap; min-width:32px; text-align:center; }
   .badge.win  { background:var(--win);  color:#fff; }
   .badge.loss { background:var(--loss); color:#fff; }
   .badge.draw { background:#d7dade; color:#333; }
-  /* page chrome — single-viewport, no scroll */
-  .site-header { flex:0 0 auto; display:flex; align-items:baseline; gap:4px 14px; flex-wrap:wrap; }
-  .site-header h1 { font-size:1.3rem; letter-spacing:-.01em; }
-  .tagline { color:var(--muted); font-size:.9rem; margin:0; }
-  .byline { font-size:.83rem; margin:0 0 0 auto; white-space:nowrap; }
-  .byline a { color:var(--accent); text-decoration:none; font-weight:600; }
-  .byline a:hover { text-decoration:underline; }
-  .byline .dot { color:#cbb98a; margin:0 7px; }
-  .about { order:1; flex:0 0 312px; min-width:228px; min-height:0; overflow-y:auto; padding-right:6px; font-size:.9rem; }
-  .about h2 { font-size:.95rem; margin:0 0 5px; }
-  .about p { margin:0 0 13px; color:#333; }
-  .about a { color:var(--accent); font-weight:600; text-decoration:none; }
-  .about a:hover { text-decoration:underline; }
-  .legend { display:flex; flex-wrap:wrap; gap:5px 14px; font-size:.84rem; color:#444; margin:0 0 13px; }
-  .legend span { display:inline-flex; align-items:center; gap:6px; }
-  .legend i { width:12px; height:12px; border-radius:4px; display:inline-block; }
-  .legend i.win { background:var(--win); } .legend i.loss { background:var(--loss); } .legend i.draw { background:#c7cbd1; }
-  .site-footer { flex:0 0 auto; color:#9aa0a6; font-size:.74rem; }
-  .site-footer a { color:#8a8f98; }
-  .line { flex:0 0 auto; display:flex; align-items:center; gap:2px; overflow-x:auto; white-space:nowrap;
-          padding:5px 2px; border-top:1px solid #eee; font-size:.84rem; }
-  .line .lnum { color:#9aa0a6; margin:0 2px 0 8px; font-variant-numeric:tabular-nums; }
-  .line .ply { font-family:ui-monospace,Menlo,monospace; padding:2px 7px; border-radius:6px; cursor:pointer; color:#333; }
-  .line .ply:hover { background:#f1ede2; }
-  .line .ply.cur { background:var(--accent); color:#fff; }
-  .embed .site-header, .embed .about, .embed .site-footer { display:none; }
+
+  .embed .site-header { display:none; }
   /* fall back to normal scrolling on small / short viewports */
   @media (max-width:880px), (max-height:560px) {
     body { overflow:auto; height:auto; }
     .main { flex-wrap:wrap; }
-    .left { order:0; margin:0; } .panel { order:1; } .about { order:2; }
-    #board { height:auto; width:344px; max-height:none; }
-    .panel { flex-basis:100%; } .about { flex-basis:100%; }
-    .moves { max-height:60vh; }
+    .left { flex-basis:100%; } .panel { flex-basis:100%; }
+    #board { height:auto; width:344px; }
+    .moves { max-height:55vh; }
+    .about-body { width:min(340px, 86vw); }
   }
 </style>
 </head>
 <body>
   <header class="site-header">
     <h1>Dōbutsu Shōgi, solved</h1>
-    <span class="tagline">A 3×4 children's shogi, played out to the last move.</span>
-    <span class="byline">
-      <a href="https://github.com/brianhliou/dobutsu-shogi">GitHub</a><span class="dot">·</span><a href="https://brianhliou.com">brianhliou.com</a>
-    </span>
+    <span class="tagline">A 3×4 children's shogi, played to the last move.</span>
+    <nav class="hlinks">
+      <details class="about" id="aboutDD">
+        <summary>About</summary>
+        <div class="about-body">
+          <h3>What this is</h3>
+          <p><strong>Dōbutsu Shōgi</strong> (動物将棋, “animal shogi”) is a 3×4 children's shogi. It is
+            <strong>strongly solved</strong>: with perfect play the <strong>second player wins in 78
+            plies</strong>. This explores all 213,993,386 reachable positions under perfect play.</p>
+          <h3>How to read it</h3>
+          <div class="legend">
+            <span><i class="win"></i> winning</span>
+            <span><i class="draw"></i> drawing</span>
+            <span><i class="loss"></i> losing</span>
+          </div>
+          <p>The verdict bar shows who wins and in how many plies; the list ranks every legal move by
+            result, best first. Dots on each piece show how it steps. Drag a piece or click a move;
+            ◀ ▶ step through the line you've played.</p>
+          <h3>How it was built</h3>
+          <p>Computed from scratch (a Rust retrograde solver), verified against
+            <a href="https://github.com/clausecker/dobutsu">clausecker/dobutsu</a> and served from a
+            333 MB table. <a href="https://github.com/brianhliou/dobutsu-shogi">Code &amp; write-up</a>.</p>
+          <p class="credit">Animal glyphs: Twemoji (CC-BY 4.0). Game first solved by Tetsuro Tanaka (2009).</p>
+        </div>
+      </details>
+      <a href="https://github.com/brianhliou/dobutsu-shogi">GitHub</a>
+      <a href="https://brianhliou.com">brianhliou.com</a>
+    </nav>
   </header>
 
   <main class="main">
-    <div class="left">
-      <div class="controls">
-        <button id="reset">↺ Reset</button>
-        <button id="back" title="Step back">◀</button>
-        <button id="fwd" title="Step forward">▶</button>
+    <section class="left">
+      <div class="boardbox">
+        <div class="tray" id="trayTop"></div>
+        <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg></div>
+        <div class="tray" id="trayBottom"></div>
       </div>
-      <div class="tray" id="trayTop"></div>
-      <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg></div>
-      <div class="tray" id="trayBottom"></div>
-    </div>
-    <div class="panel">
+    </section>
+    <aside class="panel">
       <div class="verdict" id="verdict">…</div>
-      <div class="moves" id="moves"></div>
-    </div>
-    <aside class="about">
-      <h2>What this is</h2>
-      <p><strong>Dōbutsu Shōgi</strong> (動物将棋, “animal shogi”) is a 3×4 children's shogi. It is
-        <strong>strongly solved</strong>: with perfect play the <strong>second player wins in 78
-        plies</strong>. This explores all 213,993,386 reachable positions under perfect play.</p>
-      <h2>How to read it</h2>
-      <div class="legend">
-        <span><i class="win"></i> winning</span>
-        <span><i class="draw"></i> drawing</span>
-        <span><i class="loss"></i> losing</span>
+      <div class="histbar">
+        <div class="controls">
+          <button id="reset" title="Reset to start">↺</button>
+          <button id="back" title="Step back">◀</button>
+          <button id="fwd" title="Step forward">▶</button>
+        </div>
+        <div class="line" id="lineBar"></div>
       </div>
-      <p>The bar shows who wins and in how many plies; moves are sorted best-first by distance to
-        mate. The dots on each piece show how it steps. Drag a piece, or click a move.</p>
-      <h2>How it was built</h2>
-      <p>Computed from scratch (a Rust retrograde solver), verified against
-        <a href="https://github.com/clausecker/dobutsu">clausecker/dobutsu</a> and packed into a
-        333 MB table behind a probe API.
-        <a href="https://github.com/brianhliou/dobutsu-shogi">Code &amp; write-up</a>.</p>
+      <div class="moves" id="moves"></div>
     </aside>
   </main>
-
-  <nav class="line" id="lineBar"></nav>
-
-  <footer class="site-footer">
-    Built by <a href="https://brianhliou.com">Brian Liou</a>.
-    Animal glyphs: <a href="https://github.com/twitter/twemoji">Twemoji</a> (CC-BY 4.0).
-    Game first solved by Tetsuro Tanaka (2009).
-  </footer>
 
 <script>
 const INITIAL = "S/gle/-c-/-C-/ELG/-";
@@ -587,6 +595,10 @@ document.getElementById("back").onclick = () => jumpTo(cursor - 1);
 document.getElementById("fwd").onclick = () => jumpTo(cursor + 1);
 document.getElementById("lineBar").addEventListener("click", e => {
   const p = e.target.closest(".ply"); if (p) jumpTo(+p.dataset.i);
+});
+document.addEventListener("click", e => {
+  const dd = document.getElementById("aboutDD");
+  if (dd && dd.open && !dd.contains(e.target)) dd.open = false;
 });
 showPos(INITIAL);
 </script>
