@@ -73,7 +73,19 @@
   .main { flex:1 1 auto; min-height:0; display:flex; gap:20px; align-items:stretch; }
   .left { flex:1 1 auto; min-width:0; min-height:0; display:flex; justify-content:center; align-items:center; }
   .boardbox { display:flex; flex-direction:column; gap:7px; min-height:0; width:fit-content; }
-  .board-wrap { display:flex; justify-content:center; }
+  .board-wrap { position:relative; display:flex; justify-content:center; }
+  .winbanner { position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:10; pointer-events:none; }
+  .winbanner[hidden] { display:none; }
+  .wb-card { pointer-events:auto; background:rgba(255,255,255,.97); border:1px solid #e7dcc0; border-radius:14px;
+             box-shadow:0 10px 30px rgba(0,0,0,.22); padding:11px 18px 13px; text-align:center; animation:wbin .35s ease; }
+  .wb-trophy { font-size:1.7rem; line-height:1; }
+  .wb-title { font-weight:800; font-size:1.06rem; margin-top:2px; }
+  .wb-sub { color:var(--muted); font-size:.82rem; }
+  .wb-again { margin-top:8px; font:inherit; font-size:.84rem; font-weight:600; padding:4px 12px; border-radius:7px;
+              border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; }
+  .wb-again:hover { filter:brightness(1.06); }
+  @keyframes wbin { from { opacity:0; transform:translateY(-8px) scale(.95); } to { opacity:1; transform:none; } }
+  .gameover-note { padding:16px; color:var(--muted); font-size:.9rem; text-align:center; }
   #board { display:block; height:min(760px, calc(100vh - 190px));
            width:calc(min(760px, calc(100vh - 190px)) * 326 / 422); touch-action:none; }
   #board image, #board .pc { pointer-events:none; }
@@ -157,7 +169,7 @@
     <section class="left">
       <div class="boardbox">
         <div class="tray" id="trayTop"></div>
-        <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg></div>
+        <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg><div class="winbanner" id="winBanner" hidden></div></div>
         <div class="tray" id="trayBottom"></div>
       </div>
     </section>
@@ -227,6 +239,7 @@ let hoverTo = null;            // square under the pointer (during a drag)
 let hoverMove = null;          // move previewed from the list: {from:{col,row}|null, to, piece}
 let lastMove = null;           // {from:{col,row}|null, to:{col,row}}
 let lift = null;               // piece being dragged: {kind,piece,owner,x,y} (x,y in viewBox units)
+let gameOver = null;           // set when a winning move ends the game: {winner,reason,cells,from,to,...}
 
 function parsePos(pos) {
   const parts = pos.split("/");
@@ -357,6 +370,10 @@ function renderBoard(parsed) {
   if (lastMove) for (const sq of [lastMove.from, lastMove.to]) if (sq)
     s += `<rect x="${MX+sq.col*CELL+2}" y="${MY+sq.row*CELL+2}" width="${CELL-4}" height="${CELL-4}" fill="#f6d873" opacity="0.5"/>`;
 
+  // winning-square glow (game over)
+  if (gameOver)
+    s += `<circle cx="${MX+gameOver.to.col*CELL+CELL/2}" cy="${MY+gameOver.to.row*CELL+CELL/2}" r="${CELL*0.5}" fill="#f6c945" opacity="0"><animate attributeName="opacity" values="0;0.55;0.32" dur="0.55s" begin="0.28s" fill="freeze"/></circle>`;
+
   // selected-piece highlight
   if (selected && selected.kind === "board")
     s += `<rect x="${MX+selected.from.col*CELL+2}" y="${MY+selected.from.row*CELL+2}" width="${CELL-4}" height="${CELL-4}" fill="#d98a2b" opacity="0.30"/>`;
@@ -373,11 +390,17 @@ function renderBoard(parsed) {
   if (hoverTo)
     s += `<rect x="${MX+hoverTo.col*CELL+1.5}" y="${MY+hoverTo.row*CELL+1.5}" width="${CELL-3}" height="${CELL-3}" rx="4" fill="none" stroke="${"var(--accent)"}" stroke-width="3"/>`;
 
-  // pieces (the one being dragged is lifted off its square)
+  // pieces (the one being dragged is lifted off its square; the winning move slides in)
   for (const p of parsed.cells) {
     if (lift && lift.kind === "board" && selected && selected.kind === "board"
         && p.col === selected.from.col && p.row === selected.from.row) continue;
-    s += pieceTile(cx(p.col), cy(p.row), p.piece, p.owner);
+    if (gameOver && p.col === gameOver.to.col && p.row === gameOver.to.row) {
+      const dx = (gameOver.from.col - p.col) * CELL, dy = (gameOver.from.row - p.row) * CELL;
+      s += `<g><animateTransform attributeName="transform" type="translate" from="${dx} ${dy}" to="0 0" dur="0.32s" fill="freeze"/>`
+         + pieceTile(cx(p.col), cy(p.row), p.piece, p.owner) + `</g>`;
+    } else {
+      s += pieceTile(cx(p.col), cy(p.row), p.piece, p.owner);
+    }
   }
 
   // hovered-move preview: an arrow for a board move, a ghost piece for a drop
@@ -475,6 +498,7 @@ function render(data) {
 }
 
 async function showPos(pos) {
+  gameOver = null; hideWinBanner();
   const data = await (await fetch("/api?pos=" + encodeURIComponent(pos))).json();
   if (data.error) { alert(data.error); return; }
   hoverTo = null; hoverMove = null; lift = null; clearSelection();
@@ -484,13 +508,57 @@ async function showPos(pos) {
 
 // play a move: extend the line (truncating any forward moves from a back position)
 function playMove(m) {
-  if (!m.to) { if (curParsed) renderBoard(curParsed); alert("That move wins — the lion is captured (or a Try is completed)."); return; }
   const sq = moveSquares(m.move);
   line = line.slice(0, cursor + 1);
+  lastMove = { from: sq.from, to: sq.to };
+  if (!m.to) {                                   // game-ending move: lion captured or Try completed
+    const over = finalState(m, sq);
+    line.push({ move: m.move, from: sq.from, to: sq.to, terminal: true, over });
+    cursor = line.length - 1;
+    clearSelection(); hoverTo = null; lift = null;
+    gameOver = over;
+    renderGameOver();
+    return;
+  }
   line.push({ pos: m.to, move: m.move, from: sq.from, to: sq.to });
   cursor = line.length - 1;
-  lastMove = { from: sq.from, to: sq.to };
   showPos(m.to);
+}
+
+// board state after a game-ending move (the captured lion is removed; no hand change)
+function finalState(m, sq) {
+  const mover = curParsed.cells.find(c => c.col === sq.from.col && c.row === sq.from.row) || { piece: m.move[0], owner: curParsed.side === "S" ? "sente" : "gote" };
+  const captured = curParsed.cells.find(c => c.col === sq.to.col && c.row === sq.to.row);
+  const piece = m.move.endsWith("+") ? "R" : mover.piece;
+  const cells = curParsed.cells
+    .filter(c => !(c.col === sq.from.col && c.row === sq.from.row) && !(c.col === sq.to.col && c.row === sq.to.row))
+    .concat([{ col: sq.to.col, row: sq.to.row, piece, owner: mover.owner }]);
+  return { winner: curParsed.side, reason: (captured && captured.piece === "L") ? "lion" : "try",
+           cells, sente: curParsed.sente, gote: curParsed.gote, from: sq.from, to: sq.to };
+}
+
+function renderGameOver() {
+  const o = gameOver;
+  curParsed = { side: o.winner, cells: o.cells, sente: o.sente, gote: o.gote };
+  renderBoard(curParsed);
+  const who = o.winner === "S" ? "First player" : "Second player";
+  const v = document.getElementById("verdict");
+  v.className = "verdict win";
+  v.innerHTML = `🏆 ${who} wins <small>${o.reason === "lion" ? "lion captured" : "Try completed"} · game over</small>`;
+  document.getElementById("moves").innerHTML = `<div class="gameover-note">Game over. Use ◀ or Reset to keep exploring.</div>`;
+  renderLine();
+  const b = document.getElementById("winBanner");
+  b.innerHTML = `<div class="wb-card"><div class="wb-trophy">🏆</div><div class="wb-title">${who} wins</div>`
+    + `<div class="wb-sub">${o.reason === "lion" ? "Lion captured" : "Try completed"}</div>`
+    + `<button class="wb-again" id="wbAgain">Play again</button></div>`;
+  b.hidden = false;
+  document.getElementById("wbAgain").onclick = resetGame;
+}
+
+function hideWinBanner() { const b = document.getElementById("winBanner"); if (b) b.hidden = true; }
+function resetGame() {
+  line = [{ pos: INITIAL, move: null, from: null, to: null }]; cursor = 0;
+  lastMove = null; gameOver = null; hideWinBanner(); showPos(INITIAL);
 }
 
 // jump the cursor to a ply already in the line
@@ -499,7 +567,8 @@ function jumpTo(i) {
   cursor = i;
   const node = line[i];
   lastMove = node.move ? { from: node.from, to: node.to } : null;
-  showPos(node.pos);
+  if (node.terminal) { gameOver = node.over; renderGameOver(); }
+  else { gameOver = null; hideWinBanner(); showPos(node.pos); }
 }
 
 function renderLine() {
@@ -565,6 +634,7 @@ function execMove(m) {
 }
 
 document.addEventListener("pointerdown", e => {
+  if (gameOver) return;
   const board = document.getElementById("board");
   let intent = "clear";
   if (board.contains(e.target)) {
@@ -610,9 +680,7 @@ window.addEventListener("pointerup", e => {
 });
 window.addEventListener("pointercancel", () => { press = null; hoverTo = null; lift = null; if (curParsed) renderBoard(curParsed); });
 
-document.getElementById("reset").onclick = () => {
-  line = [{ pos: INITIAL, move: null, from: null, to: null }]; cursor = 0; lastMove = null; showPos(INITIAL);
-};
+document.getElementById("reset").onclick = resetGame;
 document.getElementById("back").onclick = () => jumpTo(cursor - 1);
 document.getElementById("fwd").onclick = () => jumpTo(cursor + 1);
 document.getElementById("lineBar").addEventListener("click", e => {
