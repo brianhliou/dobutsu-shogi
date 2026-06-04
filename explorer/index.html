@@ -689,7 +689,12 @@ document.getElementById("lineBar").addEventListener("click", e => {
 const howModal = document.getElementById("howModal");
 document.getElementById("howBtn").addEventListener("click", () => { howModal.hidden = false; });
 howModal.addEventListener("click", e => { if (e.target === howModal || e.target.closest(".modal-close")) howModal.hidden = true; });
-document.addEventListener("keydown", e => { if (e.key === "Escape") howModal.hidden = true; });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") { howModal.hidden = true; return; }
+  if (!howModal.hidden) return;                       // reading the modal — leave arrows alone
+  if (e.key === "ArrowLeft") { e.preventDefault(); jumpTo(cursor - 1); }
+  else if (e.key === "ArrowRight") { e.preventDefault(); jumpTo(cursor + 1); }
+});
 showPos(INITIAL);
 </script>
 </body>
