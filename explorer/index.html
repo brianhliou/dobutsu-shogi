@@ -72,28 +72,40 @@
   /* main: board ~2/3 left, panel ~1/3 right */
   .main { flex:1 1 auto; min-height:0; display:flex; gap:24px; align-items:stretch; justify-content:center; }
   .left { flex:0 1 auto; min-width:0; min-height:0; display:flex; justify-content:center; align-items:center; }
-  .boardbox { display:flex; flex-direction:column; gap:7px; min-height:0; width:fit-content; }
+  .boardbox { display:flex; flex-direction:row; align-items:stretch; gap:14px; min-height:0; width:fit-content; }
+  .hands { display:flex; flex-direction:column; justify-content:space-between; gap:12px; }
   .board-wrap { display:flex; justify-content:center; }
   .gameover-note { padding:16px; color:var(--muted); font-size:.9rem; text-align:center; }
-  #board { display:block; height:min(760px, calc(100vh - 190px));
-           width:calc(min(760px, calc(100vh - 190px)) * 326 / 422); touch-action:none; }
+  #board { display:block; height:min(860px, calc(100vh - 110px));
+           width:calc(min(860px, calc(100vh - 110px)) * 326 / 422); touch-action:none; }
   #board image, #board .pc { pointer-events:none; }
   #board.grab { cursor:grab; } #board.grab:active { cursor:grabbing; }
 
-  /* trays + hand chips */
-  .tray { display:flex; align-items:center; gap:7px; min-height:44px; padding:5px 10px;
-          border:1.5px solid #e6e2d6; border-radius:10px; background:#f8f5ec; transition:border-color .15s,box-shadow .15s; }
+  /* trays + hand chips — fixed reserved slots (giraffe/elephant/chick), so the hand
+     panel never changes size; absent pieces show as faded ghost tiles */
+  .tray { display:flex; flex-direction:column; align-items:center; gap:10px; padding:10px 12px 13px;
+          border:1.5px solid #e6e2d6; border-radius:14px; background:#f8f5ec;
+          transition:border-color .15s,box-shadow .15s; }
   .tray.active { border-color:var(--accent); box-shadow:0 0 0 3px rgba(217,138,43,.16); }
-  .traylbl { font-size:.72rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
-             color:#9a8a62; margin-right:4px; }
-  .chip { display:inline-flex; align-items:center; gap:2px; padding:3px 7px 3px 4px;
-          border-radius:8px; border:1.5px solid var(--sente-line); background:var(--sente);
+  .traylbl { font-size:.7rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
+             color:#9a8a62; text-align:center; margin-bottom:1px; }
+  .slot { position:relative; display:flex; }
+  .chip { display:inline-flex; align-items:center; justify-content:center; padding:6px;
+          border-radius:13px; border:1.5px solid var(--sente-line); background:var(--sente);
           cursor:grab; user-select:none; }
   .chip.gote { background:var(--gote); border-color:var(--gote-line); color:#eef2f8; }
+  .chip.ghost { opacity:.24; cursor:default; }
   .chip.sel { box-shadow:0 0 0 3px rgba(217,138,43,.55); }
-  .chip img { width:24px; height:24px; pointer-events:none; -webkit-user-drag:none; }
-  .chip .cnt { font-size:.78rem; font-weight:700; }
-  .tray .empty { color:#b9b3a4; font-size:.9rem; }
+  /* size each tile off the height left after the board's chrome, so three stacked
+     tiles per hand nearly fill the column (matches the board's own height formula) */
+  .chip-svg { display:block; width:clamp(46px, calc((100vh - 110px) / 6 - 42px), 92px);
+              height:clamp(46px, calc((100vh - 110px) / 6 - 42px), 92px);
+              pointer-events:none; -webkit-user-drag:none; }
+  /* count badge sits at the tile's bottom-right corner, outside the card */
+  .cnt { position:absolute; right:-6px; bottom:-9px; min-width:23px; height:21px; padding:0 5px;
+         display:flex; align-items:center; justify-content:center; background:#fff; color:#2c2f35;
+         border:1.5px solid #d8d2c4; border-radius:999px; font-size:.8rem; font-weight:800; line-height:1;
+         box-shadow:0 1px 3px rgba(0,0,0,.16); }
 
   /* right panel: verdict, controls + history, ranked move list */
   .panel { flex:0 0 360px; min-width:300px; display:flex; flex-direction:column; min-height:0;
@@ -133,11 +145,16 @@
 
   .embed .site-header { display:none; }
   /* fall back to normal scrolling on small / short viewports */
-  @media (max-width:880px), (max-height:560px) {
+  @media (max-width:880px), (max-height:640px) {
     body { overflow:auto; height:auto; }
     .main { flex-wrap:wrap; }
     .left { flex-basis:100%; } .panel { flex-basis:100%; }
-    #board { height:auto; width:344px; }
+    .boardbox { flex-direction:column; align-items:center; gap:9px; width:auto; }
+    .hands { flex-direction:row; align-self:stretch; justify-content:center; gap:10px; }
+    .tray { flex-direction:row; flex-wrap:wrap; justify-content:center; }
+    .traylbl { width:100%; margin-bottom:0; }
+    .chip-svg { width:48px; height:48px; }
+    #board { height:auto; width:min(344px, 92vw); }
     .moves { max-height:55vh; }
     .about-body { width:min(340px, 86vw); }
   }
@@ -158,9 +175,11 @@
   <main class="main">
     <section class="left">
       <div class="boardbox">
-        <div class="tray" id="trayTop"></div>
+        <div class="hands">
+          <div class="tray" id="trayTop"></div>
+          <div class="tray" id="trayBottom"></div>
+        </div>
         <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg></div>
-        <div class="tray" id="trayBottom"></div>
       </div>
     </section>
     <aside class="panel">
@@ -413,8 +432,15 @@ function renderBoard(parsed) {
   if (lift) {
     const half = CELL * 0.46, glyph = CELL * 0.58, up = lift.owner === "sente";
     const fill = up ? "var(--sente)" : "var(--gote)", stroke = up ? "var(--sente-line)" : "var(--gote-line)";
+    const sign = up ? 1 : -1, rr = half * 0.80, dr = half * 0.10, dotc = up ? "#7a4a2a" : "#e9eef6";
+    let dots = "";
+    for (const d of (MOVES[lift.piece] || [])) {
+      const [ux, uy] = DIRS[d];
+      dots += `<circle cx="${(sign*ux*rr).toFixed(1)}" cy="${(sign*uy*rr).toFixed(1)}" r="${dr.toFixed(1)}" fill="${dotc}"/>`;
+    }
     s += `<g transform="translate(${lift.x.toFixed(1)},${lift.y.toFixed(1)})" style="pointer-events:none">`
        + `<rect x="${(-half).toFixed(1)}" y="${(-half).toFixed(1)}" width="${(2*half).toFixed(1)}" height="${(2*half).toFixed(1)}" rx="${(half*0.22).toFixed(1)}" fill="${fill}" stroke="${stroke}" stroke-width="2" filter="url(#tsh)"/>`
+       + dots
        + `<image href="/emoji/${PIECE[lift.piece]}.svg" x="${(-glyph/2).toFixed(1)}" y="${(-glyph/2).toFixed(1)}" width="${glyph.toFixed(1)}" height="${glyph.toFixed(1)}"/></g>`;
   }
 
@@ -423,20 +449,40 @@ function renderBoard(parsed) {
   renderHands(parsed);
 }
 
+// a hand chip's glyph carrying the same movement/capture dots the board pieces show.
+// sized by CSS (.chip-svg) so it can scale with the viewport.
+function chipSVG(letter, owner) {
+  const up = owner === "sente", dotc = up ? "#7a4a2a" : "#e9eef6";
+  const sign = up ? 1 : -1, c = 16, rr = 12.5, dr = 1.8, glyph = 20;
+  let dots = "";
+  for (const d of (MOVES[letter] || [])) {
+    const [ux, uy] = DIRS[d];
+    dots += `<circle cx="${(c+sign*ux*rr).toFixed(1)}" cy="${(c+sign*uy*rr).toFixed(1)}" r="${dr}" fill="${dotc}"/>`;
+  }
+  return `<svg class="chip-svg" viewBox="0 0 32 32">${dots}`
+    + `<image href="/emoji/${PIECE[letter]}.svg" x="${(c-glyph/2).toFixed(1)}" y="${(c-glyph/2).toFixed(1)}" width="${glyph}" height="${glyph}"/></svg>`;
+}
+
+// the three piece types that can sit in a hand (the Lion can't be captured to hand;
+// a promoted Hen reverts to a Chick). Always shown, as ghosts when absent, so the
+// hand panel keeps a fixed size.
+const HAND_SLOTS = ["G", "E", "C"];
+
 function renderHands(parsed) {
-  const chips = (arr, owner) => {
-    const lbl = `<span class="traylbl">${owner === "sente" ? "First player" : "Second player"}</span>`;
-    if (!arr.length) return lbl + `<span class="empty">empty hand</span>`;
+  const tray = (arr, owner) => {
     const counts = {}; arr.forEach(p => counts[p] = (counts[p] || 0) + 1);
-    return lbl + Object.entries(counts).map(([p, n]) => {
-      const sel = selected && selected.kind === "hand" && selected.piece === p && selected.owner === owner ? " sel" : "";
-      return `<span class="chip ${owner}${sel}" data-piece="${p}"><img src="/emoji/${PIECE[p]}.svg" draggable="false">`
-        + (n > 1 ? `<span class="cnt">×${n}</span>` : ``) + `</span>`;
+    const lbl = `<span class="traylbl">${owner === "sente" ? "First player" : "Second player"}</span>`;
+    const slots = HAND_SLOTS.map(p => {
+      const n = counts[p] || 0, ghost = n === 0;
+      const sel = !ghost && selected && selected.kind === "hand" && selected.piece === p && selected.owner === owner ? " sel" : "";
+      const chip = `<span class="chip ${owner}${ghost ? " ghost" : ""}${sel}"${ghost ? "" : ` data-piece="${p}"`}>${chipSVG(p, owner)}</span>`;
+      return `<span class="slot">${chip}${n > 1 ? `<span class="cnt">×${n}</span>` : ``}</span>`;
     }).join("");
+    return lbl + slots;
   };
   const top = document.getElementById("trayTop"), bot = document.getElementById("trayBottom");
-  top.innerHTML = chips(parsed.gote, "gote");
-  bot.innerHTML = chips(parsed.sente, "sente");
+  top.innerHTML = tray(parsed.gote, "gote");
+  bot.innerHTML = tray(parsed.sente, "sente");
   top.classList.toggle("active", parsed.side === "G");
   bot.classList.toggle("active", parsed.side === "S");
 }
