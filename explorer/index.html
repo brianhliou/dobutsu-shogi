@@ -299,6 +299,7 @@ function defs() {
     <filter id="bsh" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.20"/></filter>
     <clipPath id="bclip"><rect x="${MX}" y="${MY}" width="${3*CELL}" height="${4*CELL}" rx="9"/></clipPath>
+    <clipPath id="bclipin"><rect x="${MX+1.5}" y="${MY+1.5}" width="${3*CELL-3}" height="${4*CELL-3}" rx="7.5"/></clipPath>
   </defs>`;
 }
 
@@ -380,9 +381,10 @@ function renderBoard(parsed) {
   for (let r = 0; r < 4; r++)
     s += `<text x="${MX-12}" y="${cy(r)+5}" font-size="13" text-anchor="middle" fill="#9a8a62" font-weight="700">${r+1}</text>`;
 
-  // last-move highlight — fill the whole square, clipped to the board so corner cells round with it
+  // last-move highlight — fill the whole square, clipped just inside the frame so corner cells
+  // round with the board and border cells don't bleed onto the frame stroke
   if (lastMove) for (const sq of [lastMove.from, lastMove.to]) if (sq)
-    s += `<rect x="${MX+sq.col*CELL}" y="${MY+sq.row*CELL}" width="${CELL}" height="${CELL}" fill="#f6d873" opacity="0.5" clip-path="url(#bclip)"/>`;
+    s += `<rect x="${MX+sq.col*CELL}" y="${MY+sq.row*CELL}" width="${CELL}" height="${CELL}" fill="#f6d873" opacity="0.5" clip-path="url(#bclipin)"/>`;
 
   // winning-square glow (game over)
   if (gameOver)
@@ -390,7 +392,7 @@ function renderBoard(parsed) {
 
   // selected-piece highlight
   if (selected && selected.kind === "board")
-    s += `<rect x="${MX+selected.from.col*CELL}" y="${MY+selected.from.row*CELL}" width="${CELL}" height="${CELL}" fill="#d98a2b" opacity="0.30" clip-path="url(#bclip)"/>`;
+    s += `<rect x="${MX+selected.from.col*CELL}" y="${MY+selected.from.row*CELL}" width="${CELL}" height="${CELL}" fill="#d98a2b" opacity="0.30" clip-path="url(#bclipin)"/>`;
 
   // legal-destination markers
   for (const t of targets) {
