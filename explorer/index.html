@@ -12,8 +12,8 @@
 <meta property="og:title" content="Dōbutsu Shōgi, Solved — Interactive Tablebase Explorer">
 <meta property="og:description" content="A 3×4 children's shogi, completely solved. The second player wins in 78 plies. Explore every position under perfect play.">
 <meta property="og:image" content="https://dobutsu.brianhliou.com/og.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Dōbutsu Shōgi, Solved — Interactive Tablebase Explorer">
 <meta name="twitter:description" content="A 3×4 children's shogi, completely solved. The second player wins in 78 plies. Explore every position under perfect play.">
@@ -609,7 +609,7 @@ async function startAt(pos) {
 
 // deep-link: pre-load a whole line (?game=perfect) so ← → walk it to the end.
 // the line is resolved ahead of time (PERFECT_GAME), so this makes no API calls.
-function loadLine(plies) {
+function loadLine(plies, startPly) {
   line = [{ pos: INITIAL, move: null, from: null, to: null }];
   let pos = INITIAL;
   for (const step of plies) {
@@ -624,12 +624,15 @@ function loadLine(plies) {
     pos = step.pos;
   }
   cursor = 0; lastMove = null; gameOver = null;
-  showPos(INITIAL);                               // render the start; reader steps with ← →
+  // ?ply=N deep-links straight to a ply; otherwise render the start and let the
+  // reader step with ← →. One render path either way — no double-fetch race.
+  const p = Number.isInteger(startPly) && startPly > 0 && startPly < line.length ? startPly : 0;
+  if (p === 0) showPos(INITIAL); else jumpTo(p);
 }
 
 function boot() {
   const q = new URLSearchParams(location.search);
-  if (q.get("game") === "perfect") { loadLine(PERFECT_GAME); return; }
+  if (q.get("game") === "perfect") { loadLine(PERFECT_GAME, parseInt(q.get("ply"), 10)); return; }
   const pos = q.get("pos");
   if (pos && /^[A-Za-z/-]{1,64}$/.test(pos)) { startAt(pos); return; }
   showPos(INITIAL);

@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://dobutsu.brianhliou.com">
-    <img src="explorer/og.png" alt="Dōbutsu Shōgi, solved — second player wins in 78 plies" width="640">
+    <img src="explorer/og.png" alt="The Dōbutsu Shōgi tablebase explorer: every legal move ranked by distance to mate, the one move that holds the win highlighted in green above the cliff of losing moves" width="720">
   </a>
 </p>
 
