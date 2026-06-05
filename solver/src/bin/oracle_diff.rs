@@ -63,8 +63,14 @@ fn canon(posstr: &str) -> Option<String> {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let probe_bin = args.get(1).map(String::as_str).unwrap_or("../external/clausecker-dobutsu/probe");
-    let tb = args.get(2).map(String::as_str).unwrap_or("../external/clausecker-dobutsu/dobutsu.tb");
+    let probe_bin = args
+        .get(1)
+        .map(String::as_str)
+        .unwrap_or("../external/clausecker-dobutsu/probe");
+    let tb = args
+        .get(2)
+        .map(String::as_str)
+        .unwrap_or("../external/clausecker-dobutsu/dobutsu.tb");
 
     let mut child = Command::new(probe_bin)
         .arg(tb)
@@ -144,5 +150,8 @@ fn main() {
         checked += 1;
     }
 
-    println!("checked {checked} positions, {mismatches} mismatch(es); {} distinct seen", seen.len());
+    println!(
+        "checked {checked} positions, {mismatches} mismatch(es); {} distinct seen",
+        seen.len()
+    );
 }

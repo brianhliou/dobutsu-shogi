@@ -58,7 +58,7 @@ def main():
     s.append(f'<text x="{tx}" y="356" font-size="30" fill="#444">The 3×4 children’s shogi, played</text>')
     s.append(f'<text x="{tx}" y="396" font-size="30" fill="#444">out to the last move.</text>')
     s.append(f'<text x="{tx}" y="470" font-size="27" font-weight="700" fill="#2e7d32">Second player wins in 78 plies.</text>')
-    s.append(f'<text x="{tx}" y="548" font-size="23" fill="#7a6f5a">213,993,386 positions · brianhliou.com</text>')
+    s.append(f'<text x="{tx}" y="548" font-size="23" fill="#7a6f5a">246,803,167 positions · brianhliou.com</text>')
 
     s.append('</svg>')
     out = os.path.join(os.path.dirname(__file__), "..", "explorer", "og-card.svg")

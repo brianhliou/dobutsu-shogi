@@ -79,7 +79,16 @@ fn file(sq: u8) -> i8 {
 /// step directions (drank, dfile); "forward" is toward the enemy back rank
 fn dirs(piece: Piece, owner: Owner) -> &'static [(i8, i8)] {
     match (piece, owner) {
-        (Piece::Lion, _) => &[(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)],
+        (Piece::Lion, _) => &[
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+        ],
         (Piece::Giraffe, _) => &[(-1, 0), (1, 0), (0, -1), (0, 1)],
         (Piece::Elephant, _) => &[(-1, -1), (-1, 1), (1, -1), (1, 1)],
         (Piece::Chick, Owner::Sente) => &[(-1, 0)],
@@ -143,7 +152,13 @@ impl Position {
                 }
                 let capture = self.board[nsq as usize].is_some();
                 let promote = pc == Piece::Chick && nr == me.enemy_back_rank();
-                out.push(Move { piece: pc, from: Some(sq), to: nsq, capture, promote });
+                out.push(Move {
+                    piece: pc,
+                    from: Some(sq),
+                    to: nsq,
+                    capture,
+                    promote,
+                });
             }
         }
     }
@@ -156,7 +171,13 @@ impl Position {
             }
             for nsq in 0..12u8 {
                 if self.board[nsq as usize].is_none() {
-                    out.push(Move { piece: pc, from: None, to: nsq, capture: false, promote: false });
+                    out.push(Move {
+                        piece: pc,
+                        from: None,
+                        to: nsq,
+                        capture: false,
+                        promote: false,
+                    });
                 }
             }
         }
@@ -256,7 +277,11 @@ fn piece_char(pc: Piece) -> char {
 }
 
 fn char_piece(c: char) -> Option<(Piece, Owner)> {
-    let owner = if c.is_ascii_uppercase() { Owner::Sente } else { Owner::Gote };
+    let owner = if c.is_ascii_uppercase() {
+        Owner::Sente
+    } else {
+        Owner::Gote
+    };
     let pc = match c.to_ascii_uppercase() {
         'L' => Piece::Lion,
         'G' => Piece::Giraffe,
@@ -301,7 +326,12 @@ pub fn parse(s: &str) -> Option<Position> {
             }
         }
     }
-    Some(Position { board, hand_sente, hand_gote, turn })
+    Some(Position {
+        board,
+        hand_sente,
+        hand_gote,
+        turn,
+    })
 }
 
 pub fn format(p: &Position) -> String {
@@ -317,7 +347,11 @@ pub fn format(p: &Position) -> String {
                 None => s.push('-'),
                 Some((pc, o)) => {
                     let ch = piece_char(pc);
-                    s.push(if o == Owner::Sente { ch } else { ch.to_ascii_lowercase() });
+                    s.push(if o == Owner::Sente {
+                        ch
+                    } else {
+                        ch.to_ascii_lowercase()
+                    });
                 }
             }
         }
@@ -405,7 +439,11 @@ pub fn unpack(x: u64) -> Position {
     for sq in 0..12 {
         let code = (x >> (sq * 4)) & 0xF;
         if code != 0 {
-            let owner = if code % 2 == 0 { Owner::Gote } else { Owner::Sente };
+            let owner = if code % 2 == 0 {
+                Owner::Gote
+            } else {
+                Owner::Sente
+            };
             let pc = match (code + 1) / 2 {
                 1 => Piece::Lion,
                 2 => Piece::Giraffe,
@@ -420,7 +458,11 @@ pub fn unpack(x: u64) -> Position {
     for i in 0..6 {
         h[i] = ((x >> (48 + 2 * i)) & 0x3) as u8;
     }
-    let turn = if (x >> 60) & 1 == 1 { Owner::Gote } else { Owner::Sente };
+    let turn = if (x >> 60) & 1 == 1 {
+        Owner::Gote
+    } else {
+        Owner::Sente
+    };
     Position {
         board,
         hand_sente: [h[0], h[1], h[2]],
@@ -455,7 +497,12 @@ fn mirror(p: &Position) -> Position {
     for s in 0..12usize {
         board[(s / 3) * 3 + (2 - s % 3)] = p.board[s];
     }
-    Position { board, hand_sente: p.hand_sente, hand_gote: p.hand_gote, turn: p.turn }
+    Position {
+        board,
+        hand_sente: p.hand_sente,
+        hand_gote: p.hand_gote,
+        turn: p.turn,
+    }
 }
 
 /// Canonical packed key, folding the full value-symmetry group: turn (180°
@@ -474,7 +521,7 @@ mod tests {
     fn canonical_is_idempotent_and_sente_identity() {
         let p = parse("S/gle/-c-/-C-/ELG/-").unwrap();
         assert_eq!(canonical(&p), p); // already Sente to move
-        // a Gote-to-move position canonicalizes to Sente and is stable
+                                      // a Gote-to-move position canonicalizes to Sente and is stable
         let g = parse("G/gle/-c-/-C-/ELG/-").unwrap();
         let c = canonical(&g);
         assert_eq!(c.turn, Owner::Sente);
@@ -502,15 +549,21 @@ mod tests {
     fn opening_moves_match_oracle() {
         let p = parse(INIT).unwrap();
         let got: BTreeSet<String> = p.moves().iter().map(notation).collect();
-        let want: BTreeSet<String> =
-            ["Cb3xb2", "Gc4-c3", "Lb4-a3", "Lb4-c3"].iter().map(|s| s.to_string()).collect();
+        let want: BTreeSet<String> = ["Cb3xb2", "Gc4-c3", "Lb4-a3", "Lb4-c3"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
         assert_eq!(got, want);
     }
 
     #[test]
     fn chick_capture_child_matches_oracle() {
         let p = parse(INIT).unwrap();
-        let mv = p.moves().into_iter().find(|m| notation(m) == "Cb3xb2").unwrap();
+        let mv = p
+            .moves()
+            .into_iter()
+            .find(|m| notation(m) == "Cb3xb2")
+            .unwrap();
         // clausecker's probe gives this child for Cb3xb2
         assert_eq!(format(&p.make(&mv)), "G/gle/-C-/---/ELG/C");
     }

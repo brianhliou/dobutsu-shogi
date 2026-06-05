@@ -39,7 +39,11 @@ fn main() {
         }
         processed += 1;
         if processed % 10_000_000 == 0 {
-            eprintln!("processed {processed:>12}  seen {:>12}  queue {:>11}", seen.len(), q.len());
+            eprintln!(
+                "processed {processed:>12}  seen {:>12}  queue {:>11}",
+                seen.len(),
+                q.len()
+            );
         }
         if seen.len() > 500_000_000 {
             eprintln!("ABORT: seen exceeded 500M — reachability is still over-broad");

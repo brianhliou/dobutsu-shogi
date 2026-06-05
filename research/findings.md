@@ -28,6 +28,10 @@ If a claim isn't sourced, it belongs in `open-questions.md`, not here.
   4→4,134,240; 5→190,080; 6→3,564. — §2, Table 1
   - 0-in-hand board count derivation: 132 × 180 × 112 × 240 = 638,668,800. — §2
 - **Reachable from initial position** — **246,803,167**. — §3.1
+  - Our independent solve folds turn + left-right symmetry to **213,993,386** canonical positions —
+    a different denominator, not a contradiction (the draw subtotal 2,674,649 ≈ Tanaka's non-terminal
+    draws 2,682,700 corroborates it). Exact correspondence to 246,803,167 is open (`reproduction.md`).
+    **Use 246,803,167 (Tanaka's reachable count) as the public-facing headline figure everywhere.**
 - **Non-terminal reachable positions** — **99,485,568** (>half of reachable are terminal). — §3.1
 - **Non-terminal value split (side to move)** — win 56,474,473 / draw 2,682,700 / loss
   40,328,395 (sums to 99,485,568 ✓). — §3.2

@@ -20,13 +20,32 @@ const UNKNOWN: i16 = 0;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let no_drops = args.iter().any(|a| a == "--no-drops");
-    let save_path = args.iter().position(|a| a == "--save").and_then(|i| args.get(i + 1)).cloned();
-    let gen = |p: &Position| -> Vec<Move> { if no_drops { p.moves_nd() } else { p.moves() } };
-    let mk = |p: &Position, m: &Move| -> Position { if no_drops { p.make_nd(m) } else { p.make(m) } };
+    let save_path = args
+        .iter()
+        .position(|a| a == "--save")
+        .and_then(|i| args.get(i + 1))
+        .cloned();
+    let gen = |p: &Position| -> Vec<Move> {
+        if no_drops {
+            p.moves_nd()
+        } else {
+            p.moves()
+        }
+    };
+    let mk = |p: &Position, m: &Move| -> Position {
+        if no_drops {
+            p.make_nd(m)
+        } else {
+            p.make(m)
+        }
+    };
     let is_terminal = |p: &Position, ms: &[Move]| ms.iter().any(|m| p.is_terminal_win_move(m));
 
     let t0 = std::time::Instant::now();
-    eprintln!("variant: {}", if no_drops { "NO-DROPS" } else { "standard" });
+    eprintln!(
+        "variant: {}",
+        if no_drops { "NO-DROPS" } else { "standard" }
+    );
 
     // ---- enumerate canonical reachable positions, assigning dense ids ----
     let init_key = canonical_key(&parse(INIT).unwrap());
@@ -71,8 +90,12 @@ fn main() {
             unknown.push(id as u32);
         }
     }
-    eprintln!("[{:?}] terminal-win {}, no-move {no_move}, unknown {}",
-        t0.elapsed(), n as u64 - unknown.len() as u64 - no_move, unknown.len());
+    eprintln!(
+        "[{:?}] terminal-win {}, no-move {no_move}, unknown {}",
+        t0.elapsed(),
+        n as u64 - unknown.len() as u64 - no_move,
+        unknown.len()
+    );
 
     // ---- retrograde fixpoint (Jacobi: decide on prior-round values) ----
     let mut round = 0;
@@ -110,7 +133,11 @@ fn main() {
         }
         unknown = next;
         if round % 10 == 1 || decided == 0 {
-            eprintln!("[{:?}] round {round}: decided {decided}, remaining {}", t0.elapsed(), unknown.len());
+            eprintln!(
+                "[{:?}] round {round}: decided {decided}, remaining {}",
+                t0.elapsed(),
+                unknown.len()
+            );
         }
         if decided == 0 {
             break;
@@ -137,9 +164,19 @@ fn main() {
     let (mut w, mut l, mut d) = (0u64, 0u64, 0u64);
     let mut maxdtm = 0i16;
     for &v in &values {
-        if v > 0 { w += 1; maxdtm = maxdtm.max(v); } else if v < 0 { l += 1; } else { d += 1; }
+        if v > 0 {
+            w += 1;
+            maxdtm = maxdtm.max(v);
+        } else if v < 0 {
+            l += 1;
+        } else {
+            d += 1;
+        }
     }
-    println!("=== variant: {} ===", if no_drops { "NO-DROPS" } else { "standard" });
+    println!(
+        "=== variant: {} ===",
+        if no_drops { "NO-DROPS" } else { "standard" }
+    );
     println!("positions     {n}");
     println!("initial value {}", values[0]);
     println!("win {w}  loss {l}  draw {d}  (unresolved->draw {draws})");
@@ -152,17 +189,27 @@ fn main() {
         // --save (else `solve --save out.bin` would feed our own file to the
         // clausecker probe as its tablebase and every lookup would mismatch).
         let save_idx = args.iter().position(|a| a == "--save");
-        let positional: Vec<&str> = args.iter().enumerate()
-            .filter(|(i, a)| *i != 0 && !a.starts_with("--")
-                && save_idx.map_or(true, |si| *i != si + 1))
+        let positional: Vec<&str> = args
+            .iter()
+            .enumerate()
+            .filter(|(i, a)| {
+                *i != 0 && !a.starts_with("--") && save_idx.map_or(true, |si| *i != si + 1)
+            })
             .map(|(_, a)| a.as_str())
             .collect();
-        let probe_bin = positional.first().copied()
+        let probe_bin = positional
+            .first()
+            .copied()
             .unwrap_or("../external/clausecker-dobutsu/probe");
-        let tb = positional.get(1).copied()
+        let tb = positional
+            .get(1)
+            .copied()
             .unwrap_or("../external/clausecker-dobutsu/dobutsu.tb");
-        if let Ok(mut child) = Command::new(probe_bin).arg(tb)
-            .stdin(Stdio::piped()).stdout(Stdio::piped()).spawn()
+        if let Ok(mut child) = Command::new(probe_bin)
+            .arg(tb)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
         {
             let mut cin = child.stdin.take().unwrap();
             let mut cout = BufReader::new(child.stdout.take().unwrap());
@@ -177,11 +224,22 @@ fn main() {
                 if resp.contains("\"error\"") {
                     skipped += 1;
                 } else {
-                    let res = resp.split("\"result\":\"").nth(1).and_then(|s| s.split('"').next()).unwrap_or("");
-                    let dtm: i64 = resp.split("\"dtm\":").nth(1)
+                    let res = resp
+                        .split("\"result\":\"")
+                        .nth(1)
+                        .and_then(|s| s.split('"').next())
+                        .unwrap_or("");
+                    let dtm: i64 = resp
+                        .split("\"dtm\":")
+                        .nth(1)
                         .and_then(|s| s.split(|c: char| !c.is_ascii_digit() && c != '-').next())
-                        .and_then(|s| s.parse().ok()).unwrap_or(0);
-                    let theirs: i64 = match res { "win" => dtm, "loss" => -dtm, _ => 0 };
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(0);
+                    let theirs: i64 = match res {
+                        "win" => dtm,
+                        "loss" => -dtm,
+                        _ => 0,
+                    };
                     if theirs != values[i] as i64 {
                         mismatch += 1;
                     }

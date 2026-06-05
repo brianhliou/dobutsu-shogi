@@ -66,7 +66,8 @@ fn main() {
     w.write_all(MAGIC).unwrap();
     w.write_all(&(n as u64).to_le_bytes()).unwrap();
     w.write_all(&VALUE_BITS.to_le_bytes()).unwrap();
-    w.write_all(&(mph_bytes.len() as u64).to_le_bytes()).unwrap();
+    w.write_all(&(mph_bytes.len() as u64).to_le_bytes())
+        .unwrap();
     w.write_all(&mph_bytes).unwrap();
     w.write_all(&packed).unwrap();
     w.flush().unwrap();
