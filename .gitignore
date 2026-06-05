@@ -9,6 +9,7 @@
 
 # Local agent config (never public)
 .claude/settings.local.json
+CLAUDE.md
 
 # Python (for future solver/experiment work)
 __pycache__/
@@ -28,6 +29,9 @@ external/
 
 # Generated local article preview (build artifact)
 article/preview.html
+
+# Internal planning / strategy doc — kept local, not part of the public repo
+article/outline.md
 
 # Large generated artifacts (tablebases etc.) — commit deliberately, not by default
 *.tb

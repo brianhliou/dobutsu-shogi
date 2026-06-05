@@ -20,11 +20,6 @@ prose. Resolved items drop into the log at the bottom (with their resolution).
 - [ ] **Goro Goro / extended variants.** 5×6 "Goro Goro Dōbutsu Shōgi" and the 拡張どうぶつ将棋
       analyses (e.g. the 2013 Kindai University thesis). Solved? By whom? Different result?
 
-### Narrative / framing (for article/outline.md)
-- [ ] Best one-sentence intuition for *why* the second player wins (zugzwang framing).
-- [ ] How much shogi-drops explanation does a general/chess audience need before the payoff?
-- [ ] Lead with the "Wikipedia's position count is wrong" correction, or earn it mid-piece?
-
 ## Resolved log
 
 - [x] **Citation** — Tetsuro Tanaka, "An Analysis of a Board Game 'Doubutsu Shogi'" (Japanese),

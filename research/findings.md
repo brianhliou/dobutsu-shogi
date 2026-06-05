@@ -32,11 +32,10 @@ If a claim isn't sourced, it belongs in `open-questions.md`, not here.
 - **Non-terminal value split (side to move)** — win 56,474,473 / draw 2,682,700 / loss
   40,328,395 (sums to 99,485,568 ✓). — §3.2
 
-> ⚠️ English Wikipedia states verbatim: *"there are 1,567,925,964 reachable positions in the
-> game."* That is wrong — per Table 1 it's the upper bound on **all arrangements ignoring
-> reachability**. Reachable = 246,803,167. This single, confirmed error is the core article
-> beat. (Wikipedia's opening-move and 78-ply facts are *correct* — scope the correction to the
-> position count only; don't overclaim.)
+> ⚠️ The figure **1,567,925,964** has circulated (including, until recently, in English
+> Wikipedia) as the number of "reachable positions." Per Table 1 it is the upper bound on
+> **all arrangements ignoring reachability**; the reachable count is **246,803,167**. Scope any
+> correction to the position count only — the opening-move and 78-ply facts are correct.
 
 ## Structure / encoding
 
@@ -73,8 +72,8 @@ Sente's 4 legal first moves and gote's winning replies:
 
 > Note: capturing the chick **loses fastest** (76 < 78). English Wikipedia states this
 > correctly ("...capturing the chick delays loss by only 76 plies"). The inverted "best
-> opening move = capture the chick" came from an AI search summary, **not** Wikipedia — do not
-> attribute that error to Wikipedia in the article.
+> opening move = capture the chick" came from an AI search summary, **not** Wikipedia, so it
+> should not be attributed to Wikipedia.
 
 ## Reconstructed initial setup (from §4.1 move list)
 
