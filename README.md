@@ -1,24 +1,29 @@
 # dobutsu-shogi
 
-A scientific analysis of **Dōbutsu Shōgi** (どうぶつしょうぎ / "Let's Catch the Lion!") and
-its complete solution, working from the primary source toward a rigorous, well-cited
-**English article** — the explainer the topic has lacked.
+<p align="center">
+  <a href="https://dobutsu.brianhliou.com">
+    <img src="explorer/og.png" alt="Dōbutsu Shōgi, solved — second player wins in 78 plies" width="640">
+  </a>
+</p>
+
+A scientific analysis of **Dōbutsu Shōgi** (どうぶつしょうぎ / "Let's Catch the Lion!") and its
+complete solution, working from the primary source toward a rigorous, well-cited **English
+article** — the explainer the topic has lacked.
+
+**Live:** explorer → **<https://dobutsu.brianhliou.com>** ·
+article → **<https://brianhliou.com/posts/dobutsu-shogi/>**
 
 Dōbutsu Shōgi is a 3×4, 8-piece children's shogi variant designed in 2008 by professional
-player Madoka Kitao. It was **strongly solved** by Tetsuro Tanaka (University of Tokyo) in
-2009: with perfect play the **second player wins in 78 plies**. The depth of such a tiny
-game comes from shogi's **drop rule** (captured pieces return to play) — the same insight
-that makes it interesting as a design study.
-
-**Live:** interactive tablebase explorer → **<https://dobutsu.brianhliou.com>** ·
-article → **<https://brianhliou.com/posts/dobutsu-shogi/>**
+player Madoka Kitao, and **strongly solved** by Tetsuro Tanaka (University of Tokyo) in 2009.
+Its surprising depth comes from shogi's **drop rule** — captured pieces switch sides and return
+to play — the same twist that makes it interesting as a design study.
 
 ## Why this repo exists
 
 No English-language piece works through Tanaka's actual analysis — coverage is either
 rules-and-history or a short encyclopedia summary. This repo fills that gap: a
-primary-source-grounded explainer that gets the math right and shows *why* such a small
-game runs so deep.
+primary-source-grounded explainer that gets the math right and shows *why* such a small game
+runs so deep.
 
 Getting the math right matters, because one figure is easy to conflate. The often-cited
 **1,567,925,964** is Tanaka's *upper bound on all piece arrangements ignoring reachability*
@@ -27,9 +32,26 @@ Getting the math right matters, because one figure is easy to conflate. The ofte
 positions" — we use the correct figure throughout, and contributed the correction, with the
 primary-source citation, back to Wikipedia.
 
-This repo treats the work as a research project, not a blog post: read the source, verify
-every claim, log open questions, and run our own experiments — a from-scratch tablebase,
-reproduced and cross-validated against an independent solver.
+## How it's solved
+
+The solve is reproduced from scratch in Rust (`solver/`), not taken on faith:
+
+- **213,993,386** canonical positions (Tanaka's reachable count with turn + mirror symmetry
+  folded) enumerated and labeled by **retrograde analysis** — backward induction from terminal
+  positions, ~75 min and ~7 GB RAM. The initial position evaluates to **−78** (gote win in 78);
+  the deepest forced mate is 173 plies.
+- Packed into a **333 MB** compact tablebase (minimal perfect hash + 9-bit distances) — this is
+  what the live explorer probes.
+- **Validated** position-by-position against the independent clausecker/dobutsu engine:
+  **0 mismatches**.
+- **Drops ablation:** re-solving with captured pieces removed (chess-style) collapses the game
+  to a **37-ply draw** — direct evidence that the drop rule is what makes it deep.
+
+```sh
+cd solver
+cargo test
+echo 'S/gle/-c-/-C-/ELG/-' | cargo run --quiet   # legal moves + resulting positions
+```
 
 ## Layout
 
@@ -48,15 +70,6 @@ data/                # solved-game artifacts (perfect-play line, depth profile)
 assets/diagrams/     # diagrams generated from tablebase data
 ```
 
-## Status
-
-Primary source fully read; every number verified against the paper. The solve was
-**independently reproduced** — a from-scratch Rust tablebase (`solver/`), cross-validated
-against the clausecker/dobutsu engine: initial position `#-78` (gote win in 78 plies),
-chick-capture first move `#-76`, validation clean (see `research/reproduction.md`). An
-interactive tablebase **explorer** (`explorer/`) is live (link above); the English article is
-in progress. Open items in `research/open-questions.md`.
-
 ## The result, in one paragraph
 
 Dōbutsu Shōgi is a two-player, zero-sum, perfect-information game, so every position has a
@@ -66,6 +79,11 @@ win/loss/draw and its distance-to-result. The initial position is a **second-pla
 win requiring 78 plies**; whoever must move first is in zugzwang. Being solved does not make
 it unfun to play — perfect lines are well beyond human memory, and the game remains the
 best-selling shogi product in Japan.
+
+## License
+
+Code is released under the [MIT License](LICENSE). The English article prose is © Brian Liou
+(all rights reserved); Tanaka's paper is third-party and not redistributed here (see `paper/`).
 
 ## Canonical reference
 
