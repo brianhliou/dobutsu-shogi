@@ -75,23 +75,55 @@ def defs(names):
     return "<defs>" + "".join(syms) + "</defs>"
 
 
-def tile(cx, cy, letter, owner, half=CELL * 0.42, glyph=CELL * 0.48, show_moves=True):
+def tile(cx, cy, letter, owner, half=CELL * 0.40, glyph=CELL * 0.50, show_moves=True, shadow=False):
     up = owner == "sente"
     fill, stroke, dotc = (SENTE_FILL, SENTE_STROKE, SENTE_DOT) if up \
         else (GOTE_FILL, GOTE_STROKE, GOTE_DOT)
+    filt = ' filter="url(#tsh)"' if shadow else ''
     parts = [f'<rect x="{cx-half:.1f}" y="{cy-half:.1f}" width="{2*half:.1f}" '
-             f'height="{2*half:.1f}" rx="{half*0.16:.1f}" fill="{fill}" '
-             f'stroke="{stroke}" stroke-width="2"/>']
+             f'height="{2*half:.1f}" rx="{half*0.22:.1f}" fill="{fill}" '
+             f'stroke="{stroke}" stroke-width="2"{filt}/>']
     if show_moves:
         sign = 1 if up else -1
         r = half * 0.80   # orthogonal dots at edge midpoints, diagonals at the corners
         for d in MOVES[letter]:
             ux, uy = DIRS[d]
             parts.append(f'<circle cx="{cx+sign*ux*r:.1f}" cy="{cy+sign*uy*r:.1f}" '
-                         f'r="{half*0.085:.1f}" fill="{dotc}"/>')
+                         f'r="{half*0.10:.1f}" fill="{dotc}"/>')
     parts.append(f'<use href="#e_{PIECE[letter]}" x="{cx-glyph/2:.1f}" y="{cy-glyph/2:.1f}" '
                  f'width="{glyph:.1f}" height="{glyph:.1f}"/>')
     return "".join(parts)
+
+
+def cloud(cx, cy, s):
+    return (f'<g fill="#fff" opacity="0.95">'
+            f'<ellipse cx="{cx:.1f}" cy="{cy:.1f}" rx="{26*s:.1f}" ry="{15*s:.1f}"/>'
+            f'<ellipse cx="{cx-22*s:.1f}" cy="{cy+5*s:.1f}" rx="{17*s:.1f}" ry="{11*s:.1f}"/>'
+            f'<ellipse cx="{cx+22*s:.1f}" cy="{cy+5*s:.1f}" rx="{18*s:.1f}" ry="{12*s:.1f}"/>'
+            f'<ellipse cx="{cx+2*s:.1f}" cy="{cy-8*s:.1f}" rx="{13*s:.1f}" ry="{9*s:.1f}"/></g>')
+
+
+# tile-lift (tsh) and board-card (bsh) drop shadows, shared by the boards and
+# the move legend so every framed surface reads as the same physical object.
+SHADOW_DEFS = (
+    '<filter id="tsh" x="-40%" y="-40%" width="180%" height="180%">'
+    '<feDropShadow dx="0" dy="1.4" stdDeviation="1.4" flood-color="#000" flood-opacity="0.32"/></filter>'
+    '<filter id="bsh" x="-20%" y="-20%" width="140%" height="140%">'
+    '<feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.20"/></filter>')
+
+
+def board_defs():
+    """Gradients/filters/clip mirroring the explorer's board, so the static
+    diagrams read as frames of the same viewer (explorer/index.html)."""
+    return (
+        '<defs>'
+        '<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0" stop-color="#ddf1fa"/><stop offset="1" stop-color="#cde7f3"/></linearGradient>'
+        '<linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0" stop-color="#d9ecba"/><stop offset="1" stop-color="#c4dd9d"/></linearGradient>'
+        + SHADOW_DEFS +
+        f'<clipPath id="bclip"><rect x="{MARGIN}" y="{MARGIN}" width="{3*CELL}" height="{4*CELL}" rx="9"/></clipPath>'
+        '</defs>')
 
 
 def svg_open(w, h):
@@ -107,19 +139,44 @@ def render_position(pieces, outpath, sente_hand=(), gote_hand=(), highlight=None
     w = board_right + (GAP + HAND_W + MARGIN if has_hand else MARGIN)
     h = MARGIN * 2 + 4 * CELL
     names = [PIECE[p[2]] for p in pieces] + [PIECE[x] for x in (*sente_hand, *gote_hand)]
-    s = [svg_open(w, h), f'<rect width="{w}" height="{h}" fill="{BG}"/>', defs(names)]
-    s.append(f'<rect x="{MARGIN-3}" y="{MARGIN-3}" width="{3*CELL+6}" height="{4*CELL+6}" '
-             f'fill="none" stroke="{BOARD_FRAME}" stroke-width="3" rx="5"/>')
-    for r in range(4):
-        for c in range(3):
-            s.append(f'<rect x="{MARGIN+c*CELL}" y="{MARGIN+r*CELL}" width="{CELL}" '
-                     f'height="{CELL}" fill="{BOARD_FILL}" stroke="{BOARD_LINE}" stroke-width="1"/>')
+    s = [svg_open(w, h), f'<rect width="{w}" height="{h}" fill="{BG}"/>', defs(names), board_defs()]
+    # field zones (clipped to the rounded board): sky on the top rank, savanna
+    # midfield, grass on the home rank, with clouds and a foreground hill —
+    # mirrors the explorer so the diagrams read as frames of the live viewer.
+    gy = MARGIN + 3 * CELL
+    s.append(f'<rect x="{MARGIN}" y="{MARGIN}" width="{3*CELL}" height="{4*CELL}" rx="9" '
+             f'fill="{BG}" filter="url(#bsh)"/>')
+    s.append('<g clip-path="url(#bclip)">')
+    s.append(f'<rect x="{MARGIN}" y="{MARGIN}" width="{3*CELL}" height="{CELL}" fill="url(#sky)"/>')
+    s.append(f'<rect x="{MARGIN}" y="{MARGIN+CELL}" width="{3*CELL}" height="{2*CELL}" fill="#f1e6c6"/>')
+    s.append(f'<rect x="{MARGIN}" y="{gy}" width="{3*CELL}" height="{CELL}" fill="url(#grass)"/>')
+    s.append(cloud(MARGIN + CELL * 0.74, MARGIN + CELL * 0.38, 0.92))
+    s.append(cloud(MARGIN + CELL * 2.28, MARGIN + CELL * 0.62, 1.08))
+    s.append(f'<g fill="#a6c97c" opacity="0.7">'
+             f'<path d="M{MARGIN+CELL*0.35:.1f} {MARGIN+4*CELL} L{MARGIN+CELL*1.05:.1f} {gy+22} '
+             f'L{MARGIN+CELL*1.75:.1f} {MARGIN+4*CELL} Z"/>'
+             f'<path d="M{MARGIN+CELL*1.55:.1f} {MARGIN+4*CELL} L{MARGIN+CELL*2.3:.1f} {gy+10} '
+             f'L{MARGIN+3*CELL+6} {MARGIN+4*CELL} Z"/></g>')
+    s.append(f'<path d="M{MARGIN} {MARGIN+4*CELL} L{MARGIN} {gy+46} '
+             f'Q{MARGIN+CELL*1.0:.1f} {gy+20} {MARGIN+CELL*1.8:.1f} {gy+40} '
+             f'Q{MARGIN+CELL*2.5:.1f} {gy+56} {MARGIN+3*CELL} {gy+34} '
+             f'L{MARGIN+3*CELL} {MARGIN+4*CELL} Z" fill="#bcdb92" opacity="0.9"/>')
+    s.append('</g>')
+    for i in range(1, 3):
+        s.append(f'<line x1="{MARGIN+i*CELL}" y1="{MARGIN}" x2="{MARGIN+i*CELL}" '
+                 f'y2="{MARGIN+4*CELL}" stroke="#00000018" stroke-width="1"/>')
+    for i in range(1, 4):
+        s.append(f'<line x1="{MARGIN}" y1="{MARGIN+i*CELL}" x2="{MARGIN+3*CELL}" '
+                 f'y2="{MARGIN+i*CELL}" stroke="#00000018" stroke-width="1"/>')
+    # frame flush with the field, rounded to match the explorer
+    s.append(f'<rect x="{MARGIN}" y="{MARGIN}" width="{3*CELL}" height="{4*CELL}" rx="9" '
+             f'fill="none" stroke="{BOARD_FRAME}" stroke-width="3"/>')
     for c, f in enumerate(COLS):
-        s.append(f'<text x="{MARGIN+c*CELL+CELL/2:.1f}" y="{MARGIN-11}" font-size="16" '
-                 f'text-anchor="middle" fill="{LABEL}" font-weight="600">{f}</text>')
+        s.append(f'<text x="{MARGIN+c*CELL+CELL/2:.1f}" y="{MARGIN-8}" font-size="13" '
+                 f'text-anchor="middle" fill="{LABEL}" font-weight="700">{f}</text>')
     for r, rk in enumerate(ROWS):
-        s.append(f'<text x="{MARGIN-14}" y="{MARGIN+r*CELL+CELL/2+5:.1f}" font-size="16" '
-                 f'text-anchor="middle" fill="{LABEL}" font-weight="600">{rk}</text>')
+        s.append(f'<text x="{MARGIN-12}" y="{MARGIN+r*CELL+CELL/2+5:.1f}" font-size="13" '
+                 f'text-anchor="middle" fill="{LABEL}" font-weight="700">{rk}</text>')
     if highlight:
         hc = MARGIN + COLS.index(highlight[0]) * CELL + CELL / 2
         hr = MARGIN + (highlight[1] - 1) * CELL + CELL / 2
@@ -128,7 +185,7 @@ def render_position(pieces, outpath, sente_hand=(), gote_hand=(), highlight=None
     for f, rk, letter, owner in pieces:
         cx = MARGIN + COLS.index(f) * CELL + CELL / 2
         cy = MARGIN + ROWS.index(rk) * CELL + CELL / 2
-        s.append(tile(cx, cy, letter, owner))
+        s.append(tile(cx, cy, letter, owner, shadow=True))
     if has_hand:
         hx = board_right + GAP + HAND_W / 2
         hh, hg, step = CELL * 0.30, CELL * 0.40, CELL * 0.76
@@ -136,40 +193,47 @@ def render_position(pieces, outpath, sente_hand=(), gote_hand=(), highlight=None
             s.append(f'<text x="{hx:.1f}" y="{MARGIN+12}" font-size="12" text-anchor="middle" '
                      f'fill="{LABEL}">in hand</text>')
             for i, x in enumerate(gote_hand):
-                s.append(tile(hx, MARGIN + hh + 24 + i * step, x, "gote", half=hh, glyph=hg, show_moves=False))
+                s.append(tile(hx, MARGIN + hh + 24 + i * step, x, "gote", half=hh, glyph=hg, show_moves=False, shadow=True))
         if sente_hand:
             base = MARGIN + 4 * CELL
             s.append(f'<text x="{hx:.1f}" y="{base-len(sente_hand)*step-hh-8:.1f}" font-size="12" '
                      f'text-anchor="middle" fill="{LABEL}">in hand</text>')
             for i, x in enumerate(sente_hand):
-                s.append(tile(hx, base - hh - i * step, x, "sente", half=hh, glyph=hg, show_moves=False))
+                s.append(tile(hx, base - hh - i * step, x, "sente", half=hh, glyph=hg, show_moves=False, shadow=True))
     s.append("</svg>")
     write(outpath, "\n".join(s))
 
 
 def render_moves(outpath):
     panels = [("Lion", "L"), ("Giraffe", "G"), ("Elephant", "E"), ("Chick", "C"), ("Hen", "H")]
-    pc, title_h, gap = 40, 28, 26
+    pc, title_h, gap, rx = 40, 28, 26, 4
     grid = pc * 3
     pw, ph = grid, grid + title_h
     w = len(panels) * pw + (len(panels) + 1) * gap
     h = ph + gap * 2
     s = [svg_open(w, h), f'<rect width="{w}" height="{h}" fill="{BG}"/>',
-         defs(PIECE[p[1]] for p in panels)]
+         defs(PIECE[p[1]] for p in panels), '<defs>' + SHADOW_DEFS + '</defs>']
     for i, (name, letter) in enumerate(panels):
         ox, oy = gap + i * (pw + gap), gap + title_h
         s.append(f'<text x="{ox+grid/2:.1f}" y="{gap+16}" font-size="14" '
                  f'text-anchor="middle" fill="#333" font-weight="600">{name}</text>')
-        for gr in range(3):
-            for gc in range(3):
-                s.append(f'<rect x="{ox+gc*pc}" y="{oy+gr*pc}" width="{pc}" height="{pc}" '
-                         f'fill="{BOARD_FILL}" stroke="{BOARD_LINE}" stroke-width="1"/>')
+        # each panel is a little board: savanna field, #00000018 grid, and the
+        # same flush rounded brown frame, so the legend reads as the same surface
+        s.append(f'<rect x="{ox}" y="{oy}" width="{grid}" height="{grid}" rx="{rx}" '
+                 f'fill="#f1e6c6" filter="url(#bsh)"/>')
+        for g in range(1, 3):
+            s.append(f'<line x1="{ox+g*pc}" y1="{oy}" x2="{ox+g*pc}" y2="{oy+grid}" '
+                     f'stroke="#00000018" stroke-width="1"/>')
+            s.append(f'<line x1="{ox}" y1="{oy+g*pc}" x2="{ox+grid}" y2="{oy+g*pc}" '
+                     f'stroke="#00000018" stroke-width="1"/>')
+        s.append(f'<rect x="{ox}" y="{oy}" width="{grid}" height="{grid}" rx="{rx}" '
+                 f'fill="none" stroke="{BOARD_FRAME}" stroke-width="2"/>')
         for d in MOVES[letter]:
             ux, uy = DIRS[d]
             s.append(f'<circle cx="{ox+pc*1.5+ux*pc:.1f}" cy="{oy+pc*1.5+uy*pc:.1f}" '
                      f'r="6.5" fill="{DOT}"/>')
         s.append(tile(ox + pc * 1.5, oy + pc * 1.5, letter, "sente",
-                      half=pc * 0.42, glyph=pc * 0.6, show_moves=False))
+                      half=pc * 0.42, glyph=pc * 0.6, show_moves=False, shadow=True))
     s.append("</svg>")
     write(outpath, "\n".join(s))
 
