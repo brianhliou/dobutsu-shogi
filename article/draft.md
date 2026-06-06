@@ -124,5 +124,5 @@ The point generalizes: depth in a small abstract game comes less from board size
 
 **Resources:**
 - [Tanaka, "An Analysis of a Board Game 'Doubutsu Shogi'"](http://id.nii.ac.jp/1001/00062415/): the original solve (Japanese).
-- [clausecker/dobutsu](https://github.com/clausecker/dobutsu): open-source engine and tablebase generator.
+- [clausecker/dobutsu](https://github.com/clausecker/dobutsu): Robert Clausecker's independent open-source solution — the complete tablebase my solver is checked against.
 - Animal glyphs: [Twemoji](https://github.com/jdecked/twemoji), © Twitter, licensed [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
