@@ -149,6 +149,22 @@ same verdict as clausecker on every position checked. To stay exact without stor
 (an MPH cannot report "not in the set"), at a position with an immediate winning move the
 probe emits only that move; every other position has all of its children in the solved set.
 
+### Resource footprint
+
+Saved run and artifact stats:
+
+| Run / artifact | Resource use | Time | Output |
+|---|---:|---:|---:|
+| Tanaka 2009 solve | 2.6 GHz Opteron, 16 GB RAM | ~19 min enumeration, ~5.5 hr retrograde | paper result |
+| clausecker `gentb -j 8` | ~256 MB peak RSS | <1 min on Apple Silicon | `dobutsu.tb`, 167,527,962 bytes (160 MiB) |
+| `find_positions dobutsu.tb` scan | not recorded | ~30 s | depth profile, showcase positions, perfect game |
+| Rust standard solve (`solve --save`) | ~7 GB RAM | ~75 min | `dobutsu.tb.bin`, 2,139,933,860 bytes (2.0 GiB) |
+| Compact tablebase (`compact`) | compact build RSS/timing not recorded | not recorded | `dobutsu.ctb`, 332,892,892 bytes (317 MiB) |
+| Hosted compact probe (`ctbprobe`) | ~400 MB resident | cold load in well under `PROBE_TIMEOUT=20s` locally | answers explorer queries over stdin/stdout |
+
+The compact tablebase layout is a 28-byte header, `92,150,304` bytes of serialized minimal
+perfect hash, and `240,742,560` bytes of 9-bit packed values.
+
 - **Standard game:** 213,993,386 canonical positions, initial −78, max DTM 173, draws 2,674,649.
 - **No-drops ablation** (`--no-drops`: captured pieces leave the board as in chess):
   **797,658 positions** (~270× smaller), initial value **0 (draw)**, max DTM **37 plies**,

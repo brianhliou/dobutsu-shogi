@@ -47,6 +47,17 @@ The solve is reproduced from scratch in Rust (`solver/`), not taken on faith:
 - **Drops ablation:** re-solving with captured pieces removed (chess-style) collapses the game
   to a **37-ply draw** — direct evidence that the drop rule is what makes it deep.
 
+### Run stats
+
+These are the saved resource numbers for the solve and the tablebases:
+
+| Run / artifact | Resource use | Time | Output |
+|---|---:|---:|---:|
+| Tanaka 2009 solve | 2.6 GHz Opteron, 16 GB RAM | ~19 min enumeration, ~5.5 hr retrograde | published value table |
+| clausecker reproduction | ~256 MB peak RSS | <1 min | `dobutsu.tb`, 167,527,962 bytes (160 MiB) |
+| Rust standard solve | ~7 GB RAM | ~75 min | `solver/dobutsu.tb.bin`, 2,139,933,860 bytes (2.0 GiB) |
+| Compact tablebase | `ctbprobe` holds ~400 MB resident | compact timing not recorded | `solver/dobutsu.ctb`, 332,892,892 bytes (317 MiB) |
+
 ```sh
 cd solver
 cargo test

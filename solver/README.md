@@ -31,6 +31,18 @@ and runs the **drops ablation** — re-solving with drops disabled — that the 
   chess) yields **797,658 positions** (~270× smaller), initial value **0 (draw)**, max DTM
   **37 plies** — direct evidence that the drop rule is what makes the game deep (article §4).
 
+## Resource footprint
+
+| Run / artifact | Resource use | Time | Output |
+|---|---:|---:|---:|
+| Standard solve (`solve --save`) | ~7 GB RAM | ~75 min | `dobutsu.tb.bin`, 2,139,933,860 bytes (2.0 GiB) |
+| Compact tablebase (`compact`) | compact build RSS/timing not recorded | not recorded | `dobutsu.ctb`, 332,892,892 bytes (317 MiB) |
+| Hosted probe (`ctbprobe`) | ~400 MB resident | cold load in well under the API timeout locally | serves the 333 MB compact table |
+| clausecker baseline (`gentb -j 8`) | ~256 MB peak RSS | <1 min on Apple Silicon | `dobutsu.tb`, 167,527,962 bytes (160 MiB) |
+
+The compact file is `92,150,304` bytes of serialized minimal perfect hash plus
+`240,742,560` bytes of 9-bit packed distance values and a 28-byte header.
+
 ## Binaries
 
 | `cargo run --release --bin …` | does |

@@ -81,6 +81,13 @@ The full solution, in numbers:
 | Wins / draws / losses (side to move) | 56,474,473 / 2,682,700 / 40,328,395 |
 | Average legal moves per position | 9.4 |
 
+The compute footprint is small enough to rerun on one machine. Tanaka's 2009 run used a
+2.6 GHz Opteron box with 16 GB RAM: about 19 minutes to enumerate positions and 5.5 hours
+for retrograde analysis. My Rust rerun on Apple Silicon took about 75 minutes and about
+7 GB RAM, wrote a 2.14 GB sorted-record tablebase, then packed it to a 333 MB compact
+table. The live explorer serves that compact file through a probe process that holds about
+400 MB resident.
+
 ---
 
 ## 3. Notable findings
