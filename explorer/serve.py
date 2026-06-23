@@ -43,6 +43,7 @@ else:
     PROBE, TB = CLAUSECKER
     print("backend: clausecker (our tablebase not built yet)")
 EMOJI = os.path.join(ROOT, "assets", "diagrams", "emoji")
+PIECES = os.path.join(ROOT, "assets", "pieces", "official")
 PORT = int(os.environ.get("PORT", 41234))  # Railway injects $PORT; default for local dev
 INITIAL = "S/gle/-c-/-C-/ELG/-"
 
@@ -130,6 +131,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if name.endswith(".svg") and os.path.isfile(fp):
                 with open(fp, "rb") as fh:
                     self._send(200, "image/svg+xml", fh.read())
+            else:
+                self._send(404, "text/plain", b"not found")
+        elif u.path.startswith("/pieces/"):
+            name = os.path.basename(u.path)
+            fp = os.path.join(PIECES, name)
+            if name.endswith(".png") and os.path.isfile(fp):
+                with open(fp, "rb") as fh:
+                    self._send(200, "image/png", fh.read())
             else:
                 self._send(404, "text/plain", b"not found")
         elif u.path == "/og.png":

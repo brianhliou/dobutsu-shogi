@@ -17,6 +17,8 @@ Usage: python3 tools/render_board.py   ->  assets/diagrams/*.svg
 import os
 import re
 import math
+import base64
+import struct
 
 CELL = 96
 MARGIN = 34
@@ -57,7 +59,43 @@ HERE = os.path.dirname(__file__)
 OUT = os.path.join(HERE, "..", "assets", "diagrams")
 DATA = os.path.join(HERE, "..", "data")
 EMOJI_DIR = os.path.join(OUT, "emoji")
+PIECES_DIR = os.path.join(HERE, "..", "assets", "pieces", "official")
 _emoji = {}
+_piece_uri = {}
+
+
+def png_size(path):
+    with open(path, "rb") as fh:
+        head = fh.read(24)
+    return struct.unpack(">II", head[16:24])
+
+
+def piece_uri(letter):
+    if letter not in _piece_uri:
+        with open(os.path.join(PIECES_DIR, f"{PIECE[letter]}.png"), "rb") as fh:
+            _piece_uri[letter] = "data:image/png;base64," + base64.b64encode(fh.read()).decode()
+    return _piece_uri[letter]
+
+
+def piece_defs(letters):
+    syms = []
+    for L in sorted(set(letters)):
+        name = PIECE[L]
+        w, h = png_size(os.path.join(PIECES_DIR, f"{name}.png"))
+        syms.append(f'<symbol id="p_{name}" viewBox="0 0 {w} {h}">'
+                    f'<image href="{piece_uri(L)}" width="{w}" height="{h}"/></symbol>')
+    return "<defs>" + "".join(syms) + "</defs>"
+
+
+_board_uri = None
+
+
+def board_uri():
+    global _board_uri
+    if _board_uri is None:
+        with open(os.path.join(PIECES_DIR, "board.png"), "rb") as fh:
+            _board_uri = "data:image/png;base64," + base64.b64encode(fh.read()).decode()
+    return _board_uri
 
 
 def emoji(name):
@@ -75,24 +113,16 @@ def defs(names):
     return "<defs>" + "".join(syms) + "</defs>"
 
 
-def tile(cx, cy, letter, owner, half=CELL * 0.40, glyph=CELL * 0.50, show_moves=True, shadow=False):
-    up = owner == "sente"
-    fill, stroke, dotc = (SENTE_FILL, SENTE_STROKE, SENTE_DOT) if up \
-        else (GOTE_FILL, GOTE_STROKE, GOTE_DOT)
+def tile(cx, cy, letter, owner, half=CELL * 0.40, glyph=None, show_moves=True, shadow=False):
+    # Official Fujita art: the tile (coloured background + the piece's own move
+    # dots + the animal) IS the image. Owner shows in orientation — the second
+    # player's piece is the same art rotated 180°, so its facing flips.
+    size = 2 * half * 1.15
+    x, y = cx - size / 2, cy - size / 2
     filt = ' filter="url(#tsh)"' if shadow else ''
-    parts = [f'<rect x="{cx-half:.1f}" y="{cy-half:.1f}" width="{2*half:.1f}" '
-             f'height="{2*half:.1f}" rx="{half*0.22:.1f}" fill="{fill}" '
-             f'stroke="{stroke}" stroke-width="2"{filt}/>']
-    if show_moves:
-        sign = 1 if up else -1
-        r = half * 0.80   # orthogonal dots at edge midpoints, diagonals at the corners
-        for d in MOVES[letter]:
-            ux, uy = DIRS[d]
-            parts.append(f'<circle cx="{cx+sign*ux*r:.1f}" cy="{cy+sign*uy*r:.1f}" '
-                         f'r="{half*0.10:.1f}" fill="{dotc}"/>')
-    parts.append(f'<use href="#e_{PIECE[letter]}" x="{cx-glyph/2:.1f}" y="{cy-glyph/2:.1f}" '
-                 f'width="{glyph:.1f}" height="{glyph:.1f}"/>')
-    return "".join(parts)
+    rot = '' if owner == "sente" else f' transform="rotate(180 {cx:.1f} {cy:.1f})"'
+    return (f'<use href="#p_{PIECE[letter]}" x="{x:.1f}" y="{y:.1f}" '
+            f'width="{size:.1f}" height="{size:.1f}"{rot}{filt}/>')
 
 
 def cloud(cx, cy, s):
@@ -133,69 +163,48 @@ def svg_open(w, h):
             f'font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif">')
 
 
+# full board (2480x3507) mapped so its dotted grid region == the CELL grid
+BOARD_PX = (2480, 3507)
+GRID_X0, GRID_Y0 = 273, 471          # grid top-left in board px
+GRID_W, GRID_H = 1932, 2568          # grid extent in board px (3*644 x 4*642)
+SXB = 3 * CELL / GRID_W              # board px -> screen
+SYB = 4 * CELL / GRID_H
+BW, BH = BOARD_PX[0] * SXB, BOARD_PX[1] * SYB
+PAD = 6
+
+
 def render_position(pieces, outpath, sente_hand=(), gote_hand=(), highlight=None):
     has_hand = bool(sente_hand or gote_hand)
-    board_right = MARGIN + 3 * CELL
-    w = board_right + (GAP + HAND_W + MARGIN if has_hand else MARGIN)
-    h = MARGIN * 2 + 4 * CELL
-    names = [PIECE[p[2]] for p in pieces] + [PIECE[x] for x in (*sente_hand, *gote_hand)]
-    s = [svg_open(w, h), f'<rect width="{w}" height="{h}" fill="{BG}"/>', defs(names), board_defs()]
-    # field zones (clipped to the rounded board): sky on the top rank, savanna
-    # midfield, grass on the home rank, with clouds and a foreground hill —
-    # mirrors the explorer so the diagrams read as frames of the live viewer.
-    gy = MARGIN + 3 * CELL
-    s.append(f'<rect x="{MARGIN}" y="{MARGIN}" width="{3*CELL}" height="{4*CELL}" rx="9" '
-             f'fill="{BG}" filter="url(#bsh)"/>')
-    s.append('<g clip-path="url(#bclip)">')
-    s.append(f'<rect x="{MARGIN}" y="{MARGIN}" width="{3*CELL}" height="{CELL}" fill="url(#sky)"/>')
-    s.append(f'<rect x="{MARGIN}" y="{MARGIN+CELL}" width="{3*CELL}" height="{2*CELL}" fill="#f1e6c6"/>')
-    s.append(f'<rect x="{MARGIN}" y="{gy}" width="{3*CELL}" height="{CELL}" fill="url(#grass)"/>')
-    s.append(cloud(MARGIN + CELL * 0.74, MARGIN + CELL * 0.38, 0.92))
-    s.append(cloud(MARGIN + CELL * 2.28, MARGIN + CELL * 0.62, 1.08))
-    s.append(f'<g fill="#a6c97c" opacity="0.7">'
-             f'<path d="M{MARGIN+CELL*0.35:.1f} {MARGIN+4*CELL} L{MARGIN+CELL*1.05:.1f} {gy+22} '
-             f'L{MARGIN+CELL*1.75:.1f} {MARGIN+4*CELL} Z"/>'
-             f'<path d="M{MARGIN+CELL*1.55:.1f} {MARGIN+4*CELL} L{MARGIN+CELL*2.3:.1f} {gy+10} '
-             f'L{MARGIN+3*CELL+6} {MARGIN+4*CELL} Z"/></g>')
-    s.append(f'<path d="M{MARGIN} {MARGIN+4*CELL} L{MARGIN} {gy+46} '
-             f'Q{MARGIN+CELL*1.0:.1f} {gy+20} {MARGIN+CELL*1.8:.1f} {gy+40} '
-             f'Q{MARGIN+CELL*2.5:.1f} {gy+56} {MARGIN+3*CELL} {gy+34} '
-             f'L{MARGIN+3*CELL} {MARGIN+4*CELL} Z" fill="#bcdb92" opacity="0.9"/>')
-    s.append('</g>')
-    for i in range(1, 3):
-        s.append(f'<line x1="{MARGIN+i*CELL}" y1="{MARGIN}" x2="{MARGIN+i*CELL}" '
-                 f'y2="{MARGIN+4*CELL}" stroke="#00000018" stroke-width="1"/>')
-    for i in range(1, 4):
-        s.append(f'<line x1="{MARGIN}" y1="{MARGIN+i*CELL}" x2="{MARGIN+3*CELL}" '
-                 f'y2="{MARGIN+i*CELL}" stroke="#00000018" stroke-width="1"/>')
-    # frame flush with the field, rounded to match the explorer
-    s.append(f'<rect x="{MARGIN}" y="{MARGIN}" width="{3*CELL}" height="{4*CELL}" rx="9" '
-             f'fill="none" stroke="{BOARD_FRAME}" stroke-width="3"/>')
-    for c, f in enumerate(COLS):
-        s.append(f'<text x="{MARGIN+c*CELL+CELL/2:.1f}" y="{MARGIN-8}" font-size="13" '
-                 f'text-anchor="middle" fill="{LABEL}" font-weight="700">{f}</text>')
-    for r, rk in enumerate(ROWS):
-        s.append(f'<text x="{MARGIN-12}" y="{MARGIN+r*CELL+CELL/2+5:.1f}" font-size="13" '
-                 f'text-anchor="middle" fill="{LABEL}" font-weight="700">{rk}</text>')
+    bx, by = PAD, PAD
+    gx0, gy0 = bx + GRID_X0 * SXB, by + GRID_Y0 * SYB     # cell A1 top-left on screen
+    def cxc(c): return gx0 + c * CELL + CELL / 2
+    def cyc(r): return gy0 + r * CELL + CELL / 2
+    w = round(bx + BW + (GAP + HAND_W + PAD if has_hand else PAD))
+    h = round(by + BH + PAD)
+    letters = [p[2] for p in pieces] + list(sente_hand) + list(gote_hand)
+    s = [svg_open(w, h), f'<rect width="{w}" height="{h}" fill="{BG}"/>',
+         piece_defs(letters), board_defs()]
+    # the full official playmat (sky, field, grass, clouds, labels, logo); its
+    # dotted grid region maps exactly onto the piece grid.
+    s.append(f'<image href="{board_uri()}" x="{bx:.1f}" y="{by:.1f}" '
+             f'width="{BW:.1f}" height="{BH:.1f}" preserveAspectRatio="none"/>')
     if highlight:
-        hc = MARGIN + COLS.index(highlight[0]) * CELL + CELL / 2
-        hr = MARGIN + (highlight[1] - 1) * CELL + CELL / 2
+        hc, hr = cxc(COLS.index(highlight[0])), cyc(highlight[1] - 1)
         s.append(f'<circle cx="{hc:.1f}" cy="{hr:.1f}" r="{CELL*0.40:.1f}" fill="{HILITE}" '
                  f'fill-opacity="0.16" stroke="{HILITE}" stroke-width="4"/>')
     for f, rk, letter, owner in pieces:
-        cx = MARGIN + COLS.index(f) * CELL + CELL / 2
-        cy = MARGIN + ROWS.index(rk) * CELL + CELL / 2
-        s.append(tile(cx, cy, letter, owner, shadow=True))
+        s.append(tile(cxc(COLS.index(f)), cyc(ROWS.index(rk)), letter, owner,
+                      half=CELL * 0.435, shadow=True))
     if has_hand:
-        hx = board_right + GAP + HAND_W / 2
+        hx = bx + BW + GAP + HAND_W / 2
         hh, hg, step = CELL * 0.30, CELL * 0.40, CELL * 0.76
         if gote_hand:
-            s.append(f'<text x="{hx:.1f}" y="{MARGIN+12}" font-size="12" text-anchor="middle" '
+            s.append(f'<text x="{hx:.1f}" y="{by+14:.1f}" font-size="12" text-anchor="middle" '
                      f'fill="{LABEL}">in hand</text>')
             for i, x in enumerate(gote_hand):
-                s.append(tile(hx, MARGIN + hh + 24 + i * step, x, "gote", half=hh, glyph=hg, show_moves=False, shadow=True))
+                s.append(tile(hx, by + hh + 26 + i * step, x, "gote", half=hh, glyph=hg, show_moves=False, shadow=True))
         if sente_hand:
-            base = MARGIN + 4 * CELL
+            base = by + BH
             s.append(f'<text x="{hx:.1f}" y="{base-len(sente_hand)*step-hh-8:.1f}" font-size="12" '
                      f'text-anchor="middle" fill="{LABEL}">in hand</text>')
             for i, x in enumerate(sente_hand):
@@ -212,7 +221,7 @@ def render_moves(outpath):
     w = len(panels) * pw + (len(panels) + 1) * gap
     h = ph + gap * 2
     s = [svg_open(w, h), f'<rect width="{w}" height="{h}" fill="{BG}"/>',
-         defs(PIECE[p[1]] for p in panels), '<defs>' + SHADOW_DEFS + '</defs>']
+         piece_defs(p[1] for p in panels), '<defs>' + SHADOW_DEFS + '</defs>']
     for i, (name, letter) in enumerate(panels):
         ox, oy = gap + i * (pw + gap), gap + title_h
         s.append(f'<text x="{ox+grid/2:.1f}" y="{gap+16}" font-size="14" '

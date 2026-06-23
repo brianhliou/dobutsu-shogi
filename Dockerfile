@@ -19,6 +19,7 @@ WORKDIR /app
 COPY --from=build /src/solver/target/release/ctbprobe /app/solver/target/release/ctbprobe
 COPY explorer /app/explorer
 COPY assets/diagrams/emoji /app/assets/diagrams/emoji
+COPY assets/pieces /app/assets/pieces
 
 ARG CTB_URL=https://github.com/brianhliou/dobutsu-shogi/releases/download/tb-v1/dobutsu.ctb
 ADD ${CTB_URL} /app/solver/dobutsu.ctb

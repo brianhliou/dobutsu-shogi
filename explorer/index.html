@@ -6,7 +6,7 @@
 <title>Dōbutsu Shōgi, Solved — Interactive Tablebase Explorer</title>
 <meta name="description" content="Dōbutsu Shōgi (動物将棋, animal shogi) is a 3×4 children's shogi that is strongly solved: with perfect play the second player wins in 78 plies. Explore all 246,803,167 reachable positions in a complete endgame tablebase.">
 <link rel="canonical" href="https://dobutsu.brianhliou.com/">
-<link rel="icon" href="/emoji/lion.svg">
+<link rel="icon" href="/pieces/lion.png">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://dobutsu.brianhliou.com/">
 <meta property="og:title" content="Dōbutsu Shōgi, Solved — Interactive Tablebase Explorer">
@@ -77,7 +77,7 @@
   .board-wrap { display:flex; justify-content:center; }
   .gameover-note { padding:16px; color:var(--muted); font-size:.9rem; text-align:center; }
   #board { display:block; height:min(860px, calc(100vh - 110px));
-           width:calc(min(860px, calc(100vh - 110px)) * 326 / 422); touch-action:none; }
+           width:calc(min(860px, calc(100vh - 110px)) * 376 / 532); touch-action:none; }
   #board image, #board .pc { pointer-events:none; }
   #board.grab { cursor:grab; } #board.grab:active { cursor:grabbing; }
 
@@ -179,7 +179,7 @@
           <div class="tray" id="trayTop"></div>
           <div class="tray" id="trayBottom"></div>
         </div>
-        <div class="board-wrap"><svg id="board" viewBox="0 0 326 422"></svg></div>
+        <div class="board-wrap"><svg id="board" viewBox="-18 -50 376 532"></svg></div>
       </div>
     </section>
     <aside class="panel">
@@ -224,7 +224,7 @@
         an independent open-source solution of the game, then served from a 333 MB compact table.
         Full write-up: <a href="https://brianhliou.com/posts/dobutsu-shogi/">Solving Dōbutsu Shōgi</a>;
         <a href="https://github.com/brianhliou/dobutsu-shogi">code on GitHub</a>.</p>
-      <p class="credit">Animal glyphs: Twemoji (CC-BY 4.0). Game first solved by Tetsuro Tanaka (2009); independent open-source tablebase by Robert Clausecker.</p>
+      <p class="credit">Piece artwork © Maiko Fujita, from Dōbutsu Shōgi by Madoka Kitao (Nekomado), used with permission. Game first solved by Tetsuro Tanaka (2009); independent open-source tablebase by Robert Clausecker.</p>
     </div>
   </div>
 
@@ -233,7 +233,11 @@ const INITIAL = "S/gle/-c-/-C-/ELG/-";
 // the 78-ply principal variation, resolved against the tablebase (tools/gen_perfect_game.py).
 // each step: the move and the position it produces; the final move (lion capture) has pos "".
 const PERFECT_GAME = [{"move":"Lb4-a3","pos":"G/gle/-c-/LC-/E-G/-"},{"move":"Ga1-a2","pos":"S/-le/gc-/LC-/E-G/-"},{"move":"La3-b4","pos":"G/-le/gc-/-C-/ELG/-"},{"move":"Cb2xb3","pos":"S/-le/g--/-c-/ELG/c"},{"move":"Ea4xb3","pos":"G/-le/g--/-E-/-LG/Cc"},{"move":"Ec1-b2","pos":"S/-l-/ge-/-E-/-LG/Cc"},{"move":"Eb3xa2","pos":"G/-l-/Ee-/---/-LG/GCc"},{"move":"Lb1xa2","pos":"S/---/le-/---/-LG/GCec"},{"move":"G*b3","pos":"G/---/le-/-G-/-LG/Cec"},{"move":"E*c2","pos":"S/---/lee/-G-/-LG/Cc"},{"move":"Gb3xb2","pos":"G/---/lGe/---/-LG/ECc"},{"move":"La2xb2","pos":"S/---/-le/---/-LG/ECgc"},{"move":"E*a3","pos":"G/---/-le/E--/-LG/Cgc"},{"move":"Lb2-a2","pos":"S/---/l-e/E--/-LG/Cgc"},{"move":"Gc4-c3","pos":"G/---/l-e/E-G/-L-/Cgc"},{"move":"C*b2","pos":"S/---/lce/E-G/-L-/Cg"},{"move":"Ea3xb2","pos":"G/---/lEe/--G/-L-/CCg"},{"move":"La2xb2","pos":"S/---/-le/--G/-L-/CCge"},{"move":"C*b3","pos":"G/---/-le/-CG/-L-/Cge"},{"move":"Lb2-b1","pos":"S/-l-/--e/-CG/-L-/Cge"},{"move":"Lb4-a3","pos":"G/-l-/--e/LCG/---/Cge"},{"move":"G*a2","pos":"S/-l-/g-e/LCG/---/Ce"},{"move":"La3-b4","pos":"G/-l-/g-e/-CG/-L-/Ce"},{"move":"E*a3","pos":"S/-l-/g-e/eCG/-L-/C"},{"move":"Lb4-a4","pos":"G/-l-/g-e/eCG/L--/C"},{"move":"Lb1-c1","pos":"S/--l/g-e/eCG/L--/C"},{"move":"Gc3-c4","pos":"G/--l/g-e/eC-/L-G/C"},{"move":"Ea3-b2","pos":"S/--l/gee/-C-/L-G/C"},{"move":"Cb3xb2","pos":"G/--l/gCe/---/L-G/EC"},{"move":"Lc1xb2","pos":"S/---/gle/---/L-G/ECc"},{"move":"E*c3","pos":"G/---/gle/--E/L-G/Cc"},{"move":"Lb2-a1","pos":"S/l--/g-e/--E/L-G/Cc"},{"move":"Ec3-b4","pos":"G/l--/g-e/---/LEG/Cc"},{"move":"C*b3","pos":"S/l--/g-e/-c-/LEG/C"},{"move":"Eb4-c3","pos":"G/l--/g-e/-cE/L-G/C"},{"move":"La1-b1","pos":"S/-l-/g-e/-cE/L-G/C"},{"move":"C*a3","pos":"G/-l-/g-e/CcE/L-G/-"},{"move":"Ga2-a1","pos":"S/gl-/--e/CcE/L-G/-"},{"move":"Ec3-b4","pos":"G/gl-/--e/Cc-/LEG/-"},{"move":"Cb3xb4+","pos":"S/gl-/--e/C--/LrG/e"},{"move":"La4xb4","pos":"G/gl-/--e/C--/-LG/Ce"},{"move":"Lb1-b2","pos":"S/g--/-le/C--/-LG/Ce"},{"move":"Gc4-c3","pos":"G/g--/-le/C-G/-L-/Ce"},{"move":"E*b3","pos":"S/g--/-le/CeG/-L-/C"},{"move":"Gc3xc2","pos":"G/g--/-lG/Ce-/-L-/EC"},{"move":"Lb2xc2","pos":"S/g--/--l/Ce-/-L-/ECg"},{"move":"C*c3","pos":"G/g--/--l/CeC/-L-/Eg"},{"move":"Lc2-b2","pos":"S/g--/-l-/CeC/-L-/Eg"},{"move":"E*c1","pos":"G/g-E/-l-/CeC/-L-/g"},{"move":"Lb2xc1","pos":"S/g-l/---/CeC/-L-/ge"},{"move":"Lb4xb3","pos":"G/g-l/---/CLC/---/Ege"},{"move":"Lc1-b1","pos":"S/gl-/---/CLC/---/Ege"},{"move":"E*c2","pos":"G/gl-/--E/CLC/---/ge"},{"move":"Lb1-c1","pos":"S/g-l/--E/CLC/---/ge"},{"move":"Ca3-a2","pos":"G/g-l/C-E/-LC/---/ge"},{"move":"G*b2","pos":"S/g-l/CgE/-LC/---/e"},{"move":"Lb3-b4","pos":"G/g-l/CgE/--C/-L-/e"},{"move":"Ga1xa2","pos":"S/--l/ggE/--C/-L-/ec"},{"move":"Ec2-b3","pos":"G/--l/gg-/-EC/-L-/ec"},{"move":"Lc1-b1","pos":"S/-l-/gg-/-EC/-L-/ec"},{"move":"Eb3-c2","pos":"G/-l-/ggE/--C/-L-/ec"},{"move":"Gb2xc2","pos":"S/-l-/g-g/--C/-L-/eec"},{"move":"Cc3xc2","pos":"G/-l-/g-C/---/-L-/Geec"},{"move":"Lb1xc2","pos":"S/---/g-l/---/-L-/Geecc"},{"move":"G*c3","pos":"G/---/g-l/--G/-L-/eecc"},{"move":"Lc2-b1","pos":"S/-l-/g--/--G/-L-/eecc"},{"move":"Lb4-b3","pos":"G/-l-/g--/-LG/---/eecc"},{"move":"E*a3","pos":"S/-l-/g--/eLG/---/ecc"},{"move":"Lb3-a4","pos":"G/-l-/g--/e-G/L--/ecc"},{"move":"E*b2","pos":"S/-l-/ge-/e-G/L--/cc"},{"move":"La4-b3","pos":"G/-l-/ge-/eLG/---/cc"},{"move":"Eb2xc3","pos":"S/-l-/g--/eLe/---/gcc"},{"move":"Lb3xc3","pos":"G/-l-/g--/e-L/---/Egcc"},{"move":"C*c2","pos":"S/-l-/g-c/e-L/---/Egc"},{"move":"Lc3-b3","pos":"G/-l-/g-c/eL-/---/Egc"},{"move":"G*b4","pos":"S/-l-/g-c/eL-/-g-/Ec"},{"move":"Lb3xa2","pos":"G/-l-/L-c/e--/-g-/GEc"},{"move":"Lb1xa2","pos":""}];
-const CELL = 96, MX = 26, MY = 24, SVGW = 326, SVGH = 422;
+const CELL = 96, MX = 26, MY = 24;
+// the SVG works in the full board's space; its dotted grid region is mapped onto
+// the even cell grid (MX,MY .. +3·CELL,+4·CELL), so pieces keep simple coords.
+const VBX0 = -18, VBY0 = -50, SVGW = 376, SVGH = 532;
+const BOARD_X = -14.7, BOARD_Y = -46.4, BOARD_W = 369.7, BOARD_H = 524.4;
 const PIECE = {C:"chick", G:"giraffe", E:"elephant", L:"lion", R:"hen"};
 const FILES = ["a","b","c"];
 const DIRS = {N:[0,-1], S:[0,1], E:[1,0], W:[-1,0], NE:[1,-1], NW:[-1,-1], SE:[1,1], SW:[-1,1]};
@@ -312,21 +316,15 @@ function cloud(cx, cy, s) {
 }
 
 function pieceTile(cx, cy, letter, owner, ghost) {
-  const half = CELL * 0.40, glyph = CELL * 0.50, up = owner === "sente";
-  const fill = up ? "var(--sente)" : "var(--gote)";
-  const stroke = up ? "var(--sente-line)" : "var(--gote-line)";
-  const dotc = up ? "#7a4a2a" : "#e9eef6";
-  let p = ghost ? `<g opacity="0.5">` : ``;
-  p += `<rect class="pc" x="${(cx-half).toFixed(1)}" y="${(cy-half).toFixed(1)}" width="${(2*half).toFixed(1)}" `
-     + `height="${(2*half).toFixed(1)}" rx="${(half*0.22).toFixed(1)}" fill="${fill}" stroke="${stroke}" `
-     + `stroke-width="2"${ghost ? ` stroke-dasharray="5 3"` : ` filter="url(#tsh)"`}/>`;
-  const sign = up ? 1 : -1, rr = half * 0.80, dr = half * 0.10;
-  for (const d of (MOVES[letter] || [])) {
-    const [ux, uy] = DIRS[d];
-    p += `<circle class="pc" cx="${(cx+sign*ux*rr).toFixed(1)}" cy="${(cy+sign*uy*rr).toFixed(1)}" r="${dr.toFixed(1)}" fill="${dotc}"/>`;
-  }
-  p += `<image href="/emoji/${PIECE[letter]}.svg" x="${(cx-glyph/2).toFixed(1)}" y="${(cy-glyph/2).toFixed(1)}" width="${glyph.toFixed(1)}" height="${glyph.toFixed(1)}"/>`;
-  return p + (ghost ? `</g>` : ``);
+  // Official Fujita art: the tile (background + the piece's move dots + the
+  // animal) is the image; the second player's piece is the same art rotated
+  // 180°, so the two armies face each other.
+  const size = CELL * 1.0, up = owner === "sente";
+  const x = (cx - size/2).toFixed(1), y = (cy - size/2).toFixed(1);
+  const rot = up ? `` : ` transform="rotate(180 ${cx.toFixed(1)} ${cy.toFixed(1)})"`;
+  const fx = ghost ? ` opacity="0.5"` : ` filter="url(#tsh)"`;
+  return `<image href="/pieces/${PIECE[letter]}.png" x="${x}" y="${y}" `
+       + `width="${size.toFixed(1)}" height="${size.toFixed(1)}"${rot}${fx}/>`;
 }
 
 // short arrow from one square's centre to an adjacent one (every move is one step)
@@ -350,36 +348,11 @@ function renderBoard(parsed) {
   const cx = c => MX + c * CELL + CELL / 2, cy = r => MY + r * CELL + CELL / 2;
   let s = defs();
 
-  // lifted board card + field zones (clipped to rounded board)
-  s += `<rect x="${MX}" y="${MY}" width="${3*CELL}" height="${4*CELL}" rx="9" fill="#fff" filter="url(#bsh)"/>`;
-  s += `<g clip-path="url(#bclip)">`;
-  s += `<rect x="${MX}" y="${MY}" width="${3*CELL}" height="${CELL}" fill="url(#sky)"/>`;            // gote back rank: sky
-  s += `<rect x="${MX}" y="${MY+CELL}" width="${3*CELL}" height="${2*CELL}" fill="#f1e6c6"/>`;         // midfield: savanna
-  s += `<rect x="${MX}" y="${MY+3*CELL}" width="${3*CELL}" height="${CELL}" fill="url(#grass)"/>`;     // sente back rank: grass
-  s += cloud(MX + CELL*0.74, MY + CELL*0.38, 0.92) + cloud(MX + CELL*2.28, MY + CELL*0.62, 1.08);
-  // soft mountains on the home rank, then a foreground hill
-  const gy = MY + 3*CELL;
-  s += `<g fill="#a6c97c" opacity="0.7">`
-     + `<path d="M${MX+CELL*0.35} ${MY+4*CELL} L${MX+CELL*1.05} ${gy+22} L${MX+CELL*1.75} ${MY+4*CELL} Z"/>`
-     + `<path d="M${MX+CELL*1.55} ${MY+4*CELL} L${MX+CELL*2.3} ${gy+10} L${MX+3*CELL+6} ${MY+4*CELL} Z"/></g>`;
-  s += `<path d="M${MX} ${MY+4*CELL} L${MX} ${gy+46} `
-     + `Q${MX+CELL*1.0} ${gy+20} ${MX+CELL*1.8} ${gy+40} `
-     + `Q${MX+CELL*2.5} ${gy+56} ${MX+3*CELL} ${gy+34} `
-     + `L${MX+3*CELL} ${MY+4*CELL} Z" fill="#bcdb92" opacity="0.9"/>`;
-  s += `</g>`;
+  // Fujita's full official board (sky, field, grass, clouds, labels, logo — the
+  // whole playmat). Its dotted grid region maps exactly onto the cell grid.
+  s += `<image href="/pieces/board.png" x="${BOARD_X}" y="${BOARD_Y}" width="${BOARD_W}" height="${BOARD_H}" preserveAspectRatio="none"/>`;
 
-  // grid + frame
-  for (let i = 1; i < 3; i++)
-    s += `<line x1="${MX+i*CELL}" y1="${MY}" x2="${MX+i*CELL}" y2="${MY+4*CELL}" stroke="#00000018" stroke-width="1"/>`;
-  for (let i = 1; i < 4; i++)
-    s += `<line x1="${MX}" y1="${MY+i*CELL}" x2="${MX+3*CELL}" y2="${MY+i*CELL}" stroke="#00000018" stroke-width="1"/>`;
-  s += `<rect x="${MX}" y="${MY}" width="${3*CELL}" height="${4*CELL}" rx="9" fill="none" stroke="#9c8856" stroke-width="3"/>`;
-
-  // coordinates
-  for (let f = 0; f < 3; f++)
-    s += `<text x="${cx(f)}" y="${MY-8}" font-size="13" text-anchor="middle" fill="#9a8a62" font-weight="700">${FILES[f].toUpperCase()}</text>`;
-  for (let r = 0; r < 4; r++)
-    s += `<text x="${MX-12}" y="${cy(r)+5}" font-size="13" text-anchor="middle" fill="#9a8a62" font-weight="700">${r+1}</text>`;
+  // (the board carries its own A/B/C · 1-4 labels)
 
   // last-move highlight — fill the whole square, clipped just inside the frame so corner cells
   // round with the board and border cells don't bleed onto the frame stroke
@@ -432,18 +405,10 @@ function renderBoard(parsed) {
 
   // floating piece following the cursor while dragging
   if (lift) {
-    const half = CELL * 0.46, glyph = CELL * 0.58, up = lift.owner === "sente";
-    const fill = up ? "var(--sente)" : "var(--gote)", stroke = up ? "var(--sente-line)" : "var(--gote-line)";
-    const sign = up ? 1 : -1, rr = half * 0.80, dr = half * 0.10, dotc = up ? "#7a4a2a" : "#e9eef6";
-    let dots = "";
-    for (const d of (MOVES[lift.piece] || [])) {
-      const [ux, uy] = DIRS[d];
-      dots += `<circle cx="${(sign*ux*rr).toFixed(1)}" cy="${(sign*uy*rr).toFixed(1)}" r="${dr.toFixed(1)}" fill="${dotc}"/>`;
-    }
+    const size = CELL * 1.0, up = lift.owner === "sente";
+    const rot = up ? `` : ` transform="rotate(180)"`;
     s += `<g transform="translate(${lift.x.toFixed(1)},${lift.y.toFixed(1)})" style="pointer-events:none">`
-       + `<rect x="${(-half).toFixed(1)}" y="${(-half).toFixed(1)}" width="${(2*half).toFixed(1)}" height="${(2*half).toFixed(1)}" rx="${(half*0.22).toFixed(1)}" fill="${fill}" stroke="${stroke}" stroke-width="2" filter="url(#tsh)"/>`
-       + dots
-       + `<image href="/emoji/${PIECE[lift.piece]}.svg" x="${(-glyph/2).toFixed(1)}" y="${(-glyph/2).toFixed(1)}" width="${glyph.toFixed(1)}" height="${glyph.toFixed(1)}"/></g>`;
+       + `<image href="/pieces/${PIECE[lift.piece]}.png" x="${(-size/2).toFixed(1)}" y="${(-size/2).toFixed(1)}" width="${size.toFixed(1)}" height="${size.toFixed(1)}"${rot} filter="url(#tsh)"/></g>`;
   }
 
   document.getElementById("board").innerHTML = s;
@@ -454,15 +419,11 @@ function renderBoard(parsed) {
 // a hand chip's glyph carrying the same movement/capture dots the board pieces show.
 // sized by CSS (.chip-svg) so it can scale with the viewport.
 function chipSVG(letter, owner) {
-  const up = owner === "sente", dotc = up ? "#7a4a2a" : "#e9eef6";
-  const sign = up ? 1 : -1, c = 16, rr = 12.5, dr = 1.8, glyph = 20;
-  let dots = "";
-  for (const d of (MOVES[letter] || [])) {
-    const [ux, uy] = DIRS[d];
-    dots += `<circle cx="${(c+sign*ux*rr).toFixed(1)}" cy="${(c+sign*uy*rr).toFixed(1)}" r="${dr}" fill="${dotc}"/>`;
-  }
-  return `<svg class="chip-svg" viewBox="0 0 32 32">${dots}`
-    + `<image href="/emoji/${PIECE[letter]}.svg" x="${(c-glyph/2).toFixed(1)}" y="${(c-glyph/2).toFixed(1)}" width="${glyph}" height="${glyph}"/></svg>`;
+  // official tile fills the chip; second player's is rotated 180°. The chip's
+  // cream/slate card still backs it, so ownership stays legible in hand.
+  const rot = owner === "sente" ? `` : ` transform="rotate(180 16 16)"`;
+  return `<svg class="chip-svg" viewBox="0 0 32 32">`
+    + `<image href="/pieces/${PIECE[letter]}.png" x="2" y="2" width="28" height="28"${rot}/></svg>`;
 }
 
 // the three piece types that can sit in a hand (the Lion can't be captured to hand;
@@ -667,8 +628,8 @@ function renderLine() {
 // ---- selection + drag: click a piece to keep its moves shown; click a target to move ----
 function squareFromEvent(e) {
   const r = document.getElementById("board").getBoundingClientRect();
-  const x = (e.clientX - r.left) * (SVGW / r.width);
-  const y = (e.clientY - r.top) * (SVGH / r.height);
+  const x = VBX0 + (e.clientX - r.left) * (SVGW / r.width);
+  const y = VBY0 + (e.clientY - r.top) * (SVGH / r.height);
   const col = Math.floor((x - MX) / CELL), row = Math.floor((y - MY) / CELL);
   return (col < 0 || col > 2 || row < 0 || row > 3) ? null : { col, row };
 }
@@ -681,7 +642,7 @@ function targetsFor(sel) {
 }
 function boardPoint(e) {
   const r = document.getElementById("board").getBoundingClientRect();
-  return { x: (e.clientX - r.left) * (SVGW / r.width), y: (e.clientY - r.top) * (SVGH / r.height) };
+  return { x: VBX0 + (e.clientX - r.left) * (SVGW / r.width), y: VBY0 + (e.clientY - r.top) * (SVGH / r.height) };
 }
 function startLift() {
   if (!selected) { lift = null; return; }
