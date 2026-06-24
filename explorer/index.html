@@ -77,7 +77,7 @@
   .board-wrap { display:flex; justify-content:center; }
   .gameover-note { padding:16px; color:var(--muted); font-size:.9rem; text-align:center; }
   #board { display:block; height:min(860px, calc(100vh - 110px));
-           width:calc(min(860px, calc(100vh - 110px)) * 392 / 549); touch-action:none; }
+           width:calc(min(860px, calc(100vh - 110px)) * 376 / 532); touch-action:none; }
   #board image, #board .pc { pointer-events:none; }
   #board.grab { cursor:grab; } #board.grab:active { cursor:grabbing; }
 
@@ -179,7 +179,7 @@
           <div class="tray" id="trayTop"></div>
           <div class="tray" id="trayBottom"></div>
         </div>
-        <div class="board-wrap"><svg id="board" viewBox="-25 -57 392 549"></svg></div>
+        <div class="board-wrap"><svg id="board" viewBox="-18 -50 376 532"></svg></div>
       </div>
     </section>
     <aside class="panel">
@@ -236,8 +236,8 @@ const PERFECT_GAME = [{"move":"Lb4-a3","pos":"G/gle/-c-/LC-/E-G/-"},{"move":"Ga1
 const CELL = 96, MX = 26, MY = 24;
 // the SVG works in the full board's space; its dotted grid region is mapped onto
 // the even cell grid (MX,MY .. +3·CELL,+4·CELL), so pieces keep simple coords.
-const VBX0 = -25, VBY0 = -57, SVGW = 392, SVGH = 549;
-const BOARD_X = -20.4, BOARD_Y = -51.4, BOARD_W = 379.8, BOARD_H = 535.8;
+const VBX0 = -18, VBY0 = -50, SVGW = 376, SVGH = 532;
+const BOARD_X = -14.7, BOARD_Y = -46.4, BOARD_W = 369.7, BOARD_H = 524.4;
 const PIECE = {C:"chick", G:"giraffe", E:"elephant", L:"lion", R:"hen"};
 const FILES = ["a","b","c"];
 const DIRS = {N:[0,-1], S:[0,1], E:[1,0], W:[-1,0], NE:[1,-1], NW:[-1,-1], SE:[1,1], SW:[-1,1]};
