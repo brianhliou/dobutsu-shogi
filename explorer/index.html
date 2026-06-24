@@ -61,6 +61,7 @@
   .modal-card a { color:var(--accent); font-weight:600; text-decoration:none; }
   .modal-card a:hover { text-decoration:underline; }
   .modal-card .credit { color:#9aa0a6; font-size:.82rem; margin:18px 0 0; padding-top:14px; border-top:1px solid #eee; }
+  .modal-card code { font-family:ui-monospace,Menlo,monospace; font-size:.9em; background:#f1f0ec; padding:1px 5px; border-radius:5px; }
   .modal-close { position:absolute; top:14px; right:16px; width:30px; height:30px; border-radius:8px; border:0;
                  background:#f1f0ec; color:#555; font-size:1.15rem; cursor:pointer; line-height:1; }
   .modal-close:hover { background:#e6e4dd; }
@@ -76,6 +77,7 @@
   .hands { display:flex; flex-direction:column; justify-content:space-between; gap:12px; }
   .board-wrap { display:flex; justify-content:center; }
   .gameover-note { padding:16px; color:var(--muted); font-size:.9rem; text-align:center; }
+  .tb-note { padding:10px 16px 14px; color:var(--muted); font-size:.82rem; line-height:1.45; border-top:1px solid #eee; }
   #board { display:block; height:min(860px, calc(100vh - 110px));
            width:calc(min(860px, calc(100vh - 110px)) * 376 / 532); touch-action:none; }
   #board image, #board .pc { pointer-events:none; }
@@ -218,6 +220,11 @@
       <p>The verdict bar shows who wins and in how many plies; the move list ranks every legal move by
         result, best first, with its distance to mate. The dots on each piece show how it steps. Drag a
         piece or click a move to play it; ◀ ▶ step through the line you've played.</p>
+      <h3>Move notation</h3>
+      <p><strong>L</strong> Lion · <strong>G</strong> Giraffe · <strong>E</strong> Elephant ·
+        <strong>C</strong> Chick · <strong>R</strong> Hen (a promoted Chick). Moves read from→to:
+        <code>Gc4-c3</code> moves a piece, <code>Cb3xb2</code> captures, <code>C*b1</code> drops one
+        from hand, and a trailing <code>+</code> marks a Chick promoting to a Hen (<code>Cb3-b4+</code>).</p>
       <h3>How it was built</h3>
       <p>The tablebase is computed from scratch (a Rust rules engine and retrograde solver) and verified
         move-for-move against <a href="https://github.com/clausecker/dobutsu">clausecker/dobutsu</a>,
@@ -322,7 +329,7 @@ function pieceTile(cx, cy, letter, owner, ghost) {
   const size = CELL * 1.0, up = owner === "sente";
   const x = (cx - size/2).toFixed(1), y = (cy - size/2).toFixed(1);
   const rot = up ? `` : ` transform="rotate(180 ${cx.toFixed(1)} ${cy.toFixed(1)})"`;
-  const fx = ghost ? ` opacity="0.5"` : ` filter="url(#tsh)"`;
+  const fx = ghost ? ` opacity="0.35"` : ` filter="url(#tsh)"`;
   return `<image href="/pieces/${PIECE[letter]}.png" x="${x}" y="${y}" `
        + `width="${size.toFixed(1)}" height="${size.toFixed(1)}"${rot}${fx}/>`;
 }
@@ -354,10 +361,9 @@ function renderBoard(parsed) {
 
   // (the board carries its own A/B/C · 1-4 labels)
 
-  // last-move highlight — fill the whole square, clipped just inside the frame so corner cells
-  // round with the board and border cells don't bleed onto the frame stroke
+  // last-move highlight — fill the whole cell, out to the grid edge on the border
   if (lastMove) for (const sq of [lastMove.from, lastMove.to]) if (sq)
-    s += `<rect x="${MX+sq.col*CELL}" y="${MY+sq.row*CELL}" width="${CELL}" height="${CELL}" fill="#f6d873" opacity="0.5" clip-path="url(#bclipin)"/>`;
+    s += `<rect x="${MX+sq.col*CELL}" y="${MY+sq.row*CELL}" width="${CELL}" height="${CELL}" fill="#f6d873" opacity="0.5"/>`;
 
   // winning-square glow (game over)
   if (gameOver)
@@ -365,24 +371,26 @@ function renderBoard(parsed) {
 
   // selected-piece highlight
   if (selected && selected.kind === "board")
-    s += `<rect x="${MX+selected.from.col*CELL}" y="${MY+selected.from.row*CELL}" width="${CELL}" height="${CELL}" fill="#d98a2b" opacity="0.30" clip-path="url(#bclipin)"/>`;
+    s += `<rect x="${MX+selected.from.col*CELL}" y="${MY+selected.from.row*CELL}" width="${CELL}" height="${CELL}" fill="#d98a2b" opacity="0.30"/>`;
 
-  // legal-destination markers
+  // while dragging, the legal target under the cursor is highlighted as a square
+  // (its dot/ring is suppressed below)
+  const hoverTgt = (lift && hoverTo && isTarget(selected, hoverTo)) ? hoverTo : null;
+  if (hoverTgt)
+    s += `<rect x="${MX+hoverTgt.col*CELL}" y="${MY+hoverTgt.row*CELL}" width="${CELL}" height="${CELL}" fill="var(--accent)" opacity="0.28"/>`;
+
+  // legal-destination dots on empty squares (captures drawn on top, after the pieces)
   for (const t of targets) {
-    if (occ[t.row*3 + t.col])
-      s += `<circle cx="${cx(t.col)}" cy="${cy(t.row)}" r="${CELL*0.46}" fill="none" stroke="#2b8a8a" stroke-width="4" opacity="0.7"/>`;
-    else
-      s += `<circle cx="${cx(t.col)}" cy="${cy(t.row)}" r="${CELL*0.15}" fill="#2b8a8a" opacity="0.45"/>`;
+    if (occ[t.row*3 + t.col]) continue;
+    if (hoverTgt && t.col === hoverTgt.col && t.row === hoverTgt.row) continue;
+    s += `<circle cx="${cx(t.col)}" cy="${cy(t.row)}" r="${CELL*0.15}" fill="#2b8a8a" opacity="0.45"/>`;
   }
 
-  // hover ring (move preview / drag target under pointer)
-  if (hoverTo)
-    s += `<rect x="${MX+hoverTo.col*CELL+1.5}" y="${MY+hoverTo.row*CELL+1.5}" width="${CELL-3}" height="${CELL-3}" rx="4" fill="none" stroke="${"var(--accent)"}" stroke-width="3"/>`;
-
-  // pieces (the one being dragged is lifted off its square; the winning move slides in)
+  // pieces — the dragged piece stays as a faint ghost at its origin
   for (const p of parsed.cells) {
-    if (lift && lift.kind === "board" && selected && selected.kind === "board"
-        && p.col === selected.from.col && p.row === selected.from.row) continue;
+    const lifted = lift && lift.kind === "board" && selected && selected.kind === "board"
+        && p.col === selected.from.col && p.row === selected.from.row;
+    if (lifted) { s += pieceTile(cx(p.col), cy(p.row), p.piece, p.owner, true); continue; }
     if (gameOver && p.col === gameOver.to.col && p.row === gameOver.to.row) {
       const dx = (gameOver.from.col - p.col) * CELL, dy = (gameOver.from.row - p.row) * CELL;
       s += `<g><animateTransform attributeName="transform" type="translate" from="${dx} ${dy}" to="0 0" dur="0.32s" fill="freeze"/>`
@@ -391,6 +399,16 @@ function renderBoard(parsed) {
       s += pieceTile(cx(p.col), cy(p.row), p.piece, p.owner);
     }
   }
+
+  // capture markers — a ring framing each capturable enemy piece, drawn on top
+  for (const t of targets) {
+    if (!occ[t.row*3 + t.col]) continue;
+    if (hoverTgt && t.col === hoverTgt.col && t.row === hoverTgt.row) continue;
+    s += `<circle cx="${cx(t.col)}" cy="${cy(t.row)}" r="${CELL*0.47}" fill="none" stroke="#2b8a8a" stroke-width="5" opacity="0.8"/>`;
+  }
+  // border on the hovered target — frames the piece (capture) or the empty square
+  if (hoverTgt)
+    s += `<rect x="${MX+hoverTgt.col*CELL+1.5}" y="${MY+hoverTgt.row*CELL+1.5}" width="${CELL-3}" height="${CELL-3}" rx="4" fill="none" stroke="var(--accent)" stroke-width="3.5"/>`;
 
   // hovered-move preview: an arrow for a board move, a ghost piece for a drop
   if (hoverMove) {
@@ -498,6 +516,15 @@ function render(data) {
       if (!m.to) row.title = "captures the lion / completes a Try — game over";
       box.appendChild(row);
     }
+  }
+  // At a winning-capture position the engine reports only the lion-capture (or
+  // safe Try). Its alternatives lead out of the solved set, so they can't be
+  // ranked from the compact table — flag that rather than imply it's the only move.
+  if (data.value.result === "win" && data.value.dtm === 1) {
+    const note = document.createElement("div");
+    note.className = "tb-note";
+    note.textContent = "A lion can be captured. Taking it wins on the spot, so the other legal moves aren't ranked here.";
+    box.appendChild(note);
   }
 }
 
@@ -660,7 +687,7 @@ function isTarget(sel, sq) {
   return (sel.kind === "board" ? byBoard : byDrop)[key] || null;
 }
 function clearSelection() { selected = null; targets = []; }
-function selectThing(sel) { const t = targetsFor(sel); if (t.length) { selected = sel; targets = t; } else clearSelection(); }
+function selectThing(sel) { selected = sel; targets = targetsFor(sel); }  // selectable even with no moves (draggable, returns)
 function sameSel(a, b) {
   return a && b && a.kind === b.kind &&
     (a.kind === "board" ? (a.from.col === b.from.col && a.from.row === b.from.row)
@@ -674,15 +701,15 @@ function execMove(m) {
 document.addEventListener("pointerdown", e => {
   if (gameOver) return;
   const board = document.getElementById("board");
-  let intent = "clear";
+  let intent = "clear", wasSel = false;
   if (board.contains(e.target)) {
     const sq = squareFromEvent(e);
     const m = isTarget(selected, sq);
     if (m) { e.preventDefault(); execMove(m); return; }        // click a legal target -> move
     if (sq && pieceAt(sq)) {
       const sel = { kind: "board", from: sq };
-      if (sameSel(selected, sel)) clearSelection();            // click the selected piece -> deselect
-      else { selectThing(sel); if (selected) intent = "select"; }
+      wasSel = sameSel(selected, sel);                         // deselect-toggle is handled on pointerup (a tap),
+      selectThing(sel); if (selected) intent = "select";       // so a press-then-drag always lifts the piece
     } else clearSelection();                                   // click empty square -> deselect
     e.preventDefault();
   } else if (e.target.closest(".tray")) {
@@ -692,12 +719,12 @@ document.addEventListener("pointerdown", e => {
     const toMove = curParsed && (curParsed.side === "S" ? "sente" : "gote");
     if (chip && chip.dataset.piece && owner === toMove) {       // only the side-to-move's hand is droppable
       const sel = { kind: "hand", piece: chip.dataset.piece, owner };
-      if (sameSel(selected, sel)) clearSelection();
-      else { selectThing(sel); if (selected) intent = "select"; }
+      wasSel = sameSel(selected, sel);
+      selectThing(sel); if (selected) intent = "select";
       e.preventDefault();
     } else clearSelection();
   } else clearSelection();                                     // click anywhere else -> deselect
-  press = { intent, x: e.clientX, y: e.clientY, moved: false };
+  press = { intent, x: e.clientX, y: e.clientY, moved: false, wasSel };
   if (curParsed) renderBoard(curParsed);
 });
 window.addEventListener("pointermove", e => {
@@ -709,11 +736,14 @@ window.addEventListener("pointermove", e => {
 });
 window.addEventListener("pointerup", e => {
   if (!press) return;
-  if (press.intent === "select" && press.moved) {             // drag-release onto a target -> move
+  if (press.intent === "select" && press.moved) {             // a drag was in progress
     const m = isTarget(selected, squareFromEvent(e));
-    if (m) { execMove(m); return; }
+    if (m) { execMove(m); return; }                           // released on a target -> move
+    clearSelection();                                         // released elsewhere -> return + deselect
+  } else if (press.intent === "select" && !press.moved && press.wasSel) {
+    clearSelection();                                         // tap on an already-selected piece -> deselect
   }
-  press = null; hoverTo = null; lift = null;                  // tap (stays selected) or drag-miss
+  press = null; hoverTo = null; lift = null;
   if (curParsed) renderBoard(curParsed);
 });
 window.addEventListener("pointercancel", () => { press = null; hoverTo = null; lift = null; if (curParsed) renderBoard(curParsed); });
