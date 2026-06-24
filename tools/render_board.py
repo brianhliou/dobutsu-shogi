@@ -163,9 +163,9 @@ def svg_open(w, h):
             f'font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif">')
 
 
-# full board (2480x3507) mapped so its dotted grid region == the CELL grid
-BOARD_PX = (2480, 3507)
-GRID_X0, GRID_Y0 = 273, 471          # grid top-left in board px
+# full board mapped so its dotted grid region == the CELL grid (2026 board)
+BOARD_PX = (2548, 3583)
+GRID_X0, GRID_Y0 = 311, 504          # grid top-left in board px
 GRID_W, GRID_H = 1932, 2568          # grid extent in board px (3*644 x 4*642)
 SXB = 3 * CELL / GRID_W              # board px -> screen
 SYB = 4 * CELL / GRID_H
