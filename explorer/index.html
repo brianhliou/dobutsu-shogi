@@ -92,10 +92,11 @@
   .traylbl { font-size:.7rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
              color:#9a8a62; text-align:center; margin-bottom:1px; }
   .slot { position:relative; display:flex; }
+  /* one neutral card for both sides — the official tile art and its orientation
+     carry ownership, so no separate light/dark chip is needed */
   .chip { display:inline-flex; align-items:center; justify-content:center; padding:6px;
-          border-radius:13px; border:1.5px solid var(--sente-line); background:var(--sente);
+          border-radius:13px; border:1.5px solid #e6e2d6; background:#fbf8f0;
           cursor:grab; user-select:none; }
-  .chip.gote { background:var(--gote); border-color:var(--gote-line); color:#eef2f8; }
   .chip.ghost { opacity:.24; cursor:default; }
   .chip.sel { box-shadow:0 0 0 3px rgba(217,138,43,.55); }
   /* size each tile off the height left after the board's chrome, so three stacked
@@ -453,7 +454,11 @@ function renderHands(parsed) {
   const tray = (arr, owner) => {
     const counts = {}; arr.forEach(p => counts[p] = (counts[p] || 0) + 1);
     const lbl = `<span class="traylbl">${owner === "sente" ? "First player" : "Second player"}</span>`;
-    const slots = HAND_SLOTS.map(p => {
+    // bottom (first-player) tray stacks giraffe→elephant→chick top-to-bottom; the
+    // top tray mirrors it so each piece type sits innermost (nearest the board) for
+    // whichever side holds it — giraffe by the board for both players.
+    const order = owner === "sente" ? HAND_SLOTS : HAND_SLOTS.slice().reverse();
+    const slots = order.map(p => {
       const n = counts[p] || 0, ghost = n === 0;
       const sel = !ghost && selected && selected.kind === "hand" && selected.piece === p && selected.owner === owner ? " sel" : "";
       const chip = `<span class="chip ${owner}${ghost ? " ghost" : ""}${sel}"${ghost ? "" : ` data-piece="${p}"`}>${chipSVG(p, owner)}</span>`;
