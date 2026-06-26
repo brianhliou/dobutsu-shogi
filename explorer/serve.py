@@ -104,12 +104,14 @@ def query(pos):
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
-    def _send(self, code, ctype, body):
+    def _send(self, code, ctype, body, extra=None):
         if not isinstance(body, bytes):
             body = body.encode()
         self.send_response(code)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
+        for k, v in (extra or {}).items():
+            self.send_header(k, v)
         self.end_headers()
         self.wfile.write(body)
 
@@ -118,6 +120,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if u.path in ("/", "/index.html"):
             with open(os.path.join(HERE, "index.html"), "rb") as fh:
                 self._send(200, "text/html; charset=utf-8", fh.read())
+        elif u.path == "/robots.txt":
+            # Keep the licensed Fujita artwork out of image search / scrapers.
+            # The page itself stays crawlable; only the art directory is off-limits.
+            self._send(200, "text/plain", b"User-agent: *\nDisallow: /pieces/\n")
         elif u.path == "/api":
             q = urllib.parse.parse_qs(u.query)
             pos = q.get("pos", [INITIAL])[0]
@@ -137,15 +143,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
             name = os.path.basename(u.path)
             fp = os.path.join(PIECES, name)
             if name.endswith(".png") and os.path.isfile(fp):
+                # noindex: the art renders for visitors but won't be indexed by
+                # image search (X-Robots-Tag doesn't block the fetch, so the page
+                # and the embedded iframe still display it normally).
                 with open(fp, "rb") as fh:
-                    self._send(200, "image/png", fh.read())
+                    self._send(200, "image/png", fh.read(), {"X-Robots-Tag": "noindex"})
             else:
                 self._send(404, "text/plain", b"not found")
         elif u.path == "/og.png":
             fp = os.path.join(HERE, "og.png")
             if os.path.isfile(fp):
                 with open(fp, "rb") as fh:
-                    self._send(200, "image/png", fh.read())
+                    self._send(200, "image/png", fh.read(), {"X-Robots-Tag": "noindex"})
             else:
                 self._send(404, "text/plain", b"not found")
         else:
