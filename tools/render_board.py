@@ -218,30 +218,24 @@ def render_position(pieces, outpath, sente_hand=(), gote_hand=(), highlight=None
 
 
 def render_moves(outpath):
-    # Two rows of large official tiles — Lion/Giraffe/Elephant on top, Chick and
-    # its Hen promotion centred below. Each tile's own art carries the move dots
+    # A single row of official tiles. Each tile's own art carries the move dots
     # (that's how the physical game teaches moves); the post text explains the
     # Chick->Hen promotion, so no grid, overlay dots, or arrow here.
-    rows = [[("Lion", "L"), ("Giraffe", "G"), ("Elephant", "E")],
-            [("Chick", "C"), ("Hen", "H")]]
-    tsz, title_h, gap = 174, 34, 30
+    pieces = [("Lion", "L"), ("Giraffe", "G"), ("Elephant", "E"), ("Chick", "C"), ("Hen", "H")]
+    tsz, title_h, gap = 130, 32, 18
     pw, ph = tsz, tsz + title_h
-    ncols = max(len(r) for r in rows)
-    w = ncols * pw + (ncols + 1) * gap
-    h = len(rows) * ph + (len(rows) + 1) * gap
+    n = len(pieces)
+    w = n * pw + (n + 1) * gap
+    h = ph + 2 * gap
     s = [svg_open(w, h), f'<rect width="{w}" height="{h}" fill="{BG}"/>',
-         piece_defs(p[1] for row in rows for p in row), '<defs>' + SHADOW_DEFS + '</defs>']
-    for ri, row in enumerate(rows):
-        ytop = gap + ri * (ph + gap)
-        oy = ytop + title_h
-        row_w = len(row) * pw + (len(row) - 1) * gap
-        x0 = (w - row_w) / 2                       # centre each row
-        for ci, (name, letter) in enumerate(row):
-            ox = x0 + ci * (pw + gap)
-            s.append(f'<text x="{ox+tsz/2:.1f}" y="{ytop+21:.1f}" font-size="17" '
-                     f'text-anchor="middle" fill="#333" font-weight="600">{name}</text>')
-            s.append(tile(ox + tsz / 2, oy + tsz / 2, letter, "sente",
-                          half=tsz * 0.96 / 2.3, show_moves=False, shadow=True))
+         piece_defs(p[1] for p in pieces), '<defs>' + SHADOW_DEFS + '</defs>']
+    oy = gap + title_h
+    for i, (name, letter) in enumerate(pieces):
+        ox = gap + i * (pw + gap)
+        s.append(f'<text x="{ox+tsz/2:.1f}" y="{gap+20:.1f}" font-size="15" '
+                 f'text-anchor="middle" fill="#333" font-weight="600">{name}</text>')
+        s.append(tile(ox + tsz / 2, oy + tsz / 2, letter, "sente",
+                      half=tsz * 0.96 / 2.3, show_moves=False, shadow=True))
     s.append("</svg>")
     write(outpath, "\n".join(s))
 
