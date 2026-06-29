@@ -242,6 +242,9 @@ const INITIAL = "S/gle/-c-/-C-/ELG/-";
 // each step: the move and the position it produces; the final move (lion capture) has pos "".
 const PERFECT_GAME = [{"move":"Lb4-a3","pos":"G/gle/-c-/LC-/E-G/-"},{"move":"Ga1-a2","pos":"S/-le/gc-/LC-/E-G/-"},{"move":"La3-b4","pos":"G/-le/gc-/-C-/ELG/-"},{"move":"Cb2xb3","pos":"S/-le/g--/-c-/ELG/c"},{"move":"Ea4xb3","pos":"G/-le/g--/-E-/-LG/Cc"},{"move":"Ec1-b2","pos":"S/-l-/ge-/-E-/-LG/Cc"},{"move":"Eb3xa2","pos":"G/-l-/Ee-/---/-LG/GCc"},{"move":"Lb1xa2","pos":"S/---/le-/---/-LG/GCec"},{"move":"G*b3","pos":"G/---/le-/-G-/-LG/Cec"},{"move":"E*c2","pos":"S/---/lee/-G-/-LG/Cc"},{"move":"Gb3xb2","pos":"G/---/lGe/---/-LG/ECc"},{"move":"La2xb2","pos":"S/---/-le/---/-LG/ECgc"},{"move":"E*a3","pos":"G/---/-le/E--/-LG/Cgc"},{"move":"Lb2-a2","pos":"S/---/l-e/E--/-LG/Cgc"},{"move":"Gc4-c3","pos":"G/---/l-e/E-G/-L-/Cgc"},{"move":"C*b2","pos":"S/---/lce/E-G/-L-/Cg"},{"move":"Ea3xb2","pos":"G/---/lEe/--G/-L-/CCg"},{"move":"La2xb2","pos":"S/---/-le/--G/-L-/CCge"},{"move":"C*b3","pos":"G/---/-le/-CG/-L-/Cge"},{"move":"Lb2-b1","pos":"S/-l-/--e/-CG/-L-/Cge"},{"move":"Lb4-a3","pos":"G/-l-/--e/LCG/---/Cge"},{"move":"G*a2","pos":"S/-l-/g-e/LCG/---/Ce"},{"move":"La3-b4","pos":"G/-l-/g-e/-CG/-L-/Ce"},{"move":"E*a3","pos":"S/-l-/g-e/eCG/-L-/C"},{"move":"Lb4-a4","pos":"G/-l-/g-e/eCG/L--/C"},{"move":"Lb1-c1","pos":"S/--l/g-e/eCG/L--/C"},{"move":"Gc3-c4","pos":"G/--l/g-e/eC-/L-G/C"},{"move":"Ea3-b2","pos":"S/--l/gee/-C-/L-G/C"},{"move":"Cb3xb2","pos":"G/--l/gCe/---/L-G/EC"},{"move":"Lc1xb2","pos":"S/---/gle/---/L-G/ECc"},{"move":"E*c3","pos":"G/---/gle/--E/L-G/Cc"},{"move":"Lb2-a1","pos":"S/l--/g-e/--E/L-G/Cc"},{"move":"Ec3-b4","pos":"G/l--/g-e/---/LEG/Cc"},{"move":"C*b3","pos":"S/l--/g-e/-c-/LEG/C"},{"move":"Eb4-c3","pos":"G/l--/g-e/-cE/L-G/C"},{"move":"La1-b1","pos":"S/-l-/g-e/-cE/L-G/C"},{"move":"C*a3","pos":"G/-l-/g-e/CcE/L-G/-"},{"move":"Ga2-a1","pos":"S/gl-/--e/CcE/L-G/-"},{"move":"Ec3-b4","pos":"G/gl-/--e/Cc-/LEG/-"},{"move":"Cb3xb4+","pos":"S/gl-/--e/C--/LrG/e"},{"move":"La4xb4","pos":"G/gl-/--e/C--/-LG/Ce"},{"move":"Lb1-b2","pos":"S/g--/-le/C--/-LG/Ce"},{"move":"Gc4-c3","pos":"G/g--/-le/C-G/-L-/Ce"},{"move":"E*b3","pos":"S/g--/-le/CeG/-L-/C"},{"move":"Gc3xc2","pos":"G/g--/-lG/Ce-/-L-/EC"},{"move":"Lb2xc2","pos":"S/g--/--l/Ce-/-L-/ECg"},{"move":"C*c3","pos":"G/g--/--l/CeC/-L-/Eg"},{"move":"Lc2-b2","pos":"S/g--/-l-/CeC/-L-/Eg"},{"move":"E*c1","pos":"G/g-E/-l-/CeC/-L-/g"},{"move":"Lb2xc1","pos":"S/g-l/---/CeC/-L-/ge"},{"move":"Lb4xb3","pos":"G/g-l/---/CLC/---/Ege"},{"move":"Lc1-b1","pos":"S/gl-/---/CLC/---/Ege"},{"move":"E*c2","pos":"G/gl-/--E/CLC/---/ge"},{"move":"Lb1-c1","pos":"S/g-l/--E/CLC/---/ge"},{"move":"Ca3-a2","pos":"G/g-l/C-E/-LC/---/ge"},{"move":"G*b2","pos":"S/g-l/CgE/-LC/---/e"},{"move":"Lb3-b4","pos":"G/g-l/CgE/--C/-L-/e"},{"move":"Ga1xa2","pos":"S/--l/ggE/--C/-L-/ec"},{"move":"Ec2-b3","pos":"G/--l/gg-/-EC/-L-/ec"},{"move":"Lc1-b1","pos":"S/-l-/gg-/-EC/-L-/ec"},{"move":"Eb3-c2","pos":"G/-l-/ggE/--C/-L-/ec"},{"move":"Gb2xc2","pos":"S/-l-/g-g/--C/-L-/eec"},{"move":"Cc3xc2","pos":"G/-l-/g-C/---/-L-/Geec"},{"move":"Lb1xc2","pos":"S/---/g-l/---/-L-/Geecc"},{"move":"G*c3","pos":"G/---/g-l/--G/-L-/eecc"},{"move":"Lc2-b1","pos":"S/-l-/g--/--G/-L-/eecc"},{"move":"Lb4-b3","pos":"G/-l-/g--/-LG/---/eecc"},{"move":"E*a3","pos":"S/-l-/g--/eLG/---/ecc"},{"move":"Lb3-a4","pos":"G/-l-/g--/e-G/L--/ecc"},{"move":"E*b2","pos":"S/-l-/ge-/e-G/L--/cc"},{"move":"La4-b3","pos":"G/-l-/ge-/eLG/---/cc"},{"move":"Eb2xc3","pos":"S/-l-/g--/eLe/---/gcc"},{"move":"Lb3xc3","pos":"G/-l-/g--/e-L/---/Egcc"},{"move":"C*c2","pos":"S/-l-/g-c/e-L/---/Egc"},{"move":"Lc3-b3","pos":"G/-l-/g-c/eL-/---/Egc"},{"move":"G*b4","pos":"S/-l-/g-c/eL-/-g-/Ec"},{"move":"Lb3xa2","pos":"G/-l-/L-c/e--/-g-/GEc"},{"move":"Lb1xa2","pos":""}];
 const CELL = 96, MX = 26, MY = 24;
+// pieces sit inset within each dotted cell (not flush to the grid lines) — matches
+// the official spacing Madoka Kitao asked for. Tune for tighter/looser margins.
+const PIECE_SCALE = 0.85;
 // the SVG works in the full board's space; its dotted grid region is mapped onto
 // the even cell grid (MX,MY .. +3·CELL,+4·CELL), so pieces keep simple coords.
 const VBX0 = -18, VBY0 = -50, SVGW = 376, SVGH = 532;
@@ -327,10 +330,10 @@ function pieceTile(cx, cy, letter, owner, ghost) {
   // Official Fujita art: the tile (background + the piece's move dots + the
   // animal) is the image; the second player's piece is the same art rotated
   // 180°, so the two armies face each other.
-  const size = CELL * 1.0, up = owner === "sente";
+  const size = CELL * PIECE_SCALE, up = owner === "sente";
   const x = (cx - size/2).toFixed(1), y = (cy - size/2).toFixed(1);
   const rot = up ? `` : ` transform="rotate(180 ${cx.toFixed(1)} ${cy.toFixed(1)})"`;
-  const fx = ghost ? ` opacity="0.35"` : ` filter="url(#tsh)"`;
+  const fx = ghost ? ` opacity="0.35"` : ``;
   return `<image href="/pieces/${PIECE[letter]}.png" x="${x}" y="${y}" `
        + `width="${size.toFixed(1)}" height="${size.toFixed(1)}"${rot}${fx}/>`;
 }
@@ -424,7 +427,7 @@ function renderBoard(parsed) {
 
   // floating piece following the cursor while dragging
   if (lift) {
-    const size = CELL * 1.0, up = lift.owner === "sente";
+    const size = CELL * PIECE_SCALE, up = lift.owner === "sente";
     const rot = up ? `` : ` transform="rotate(180)"`;
     s += `<g transform="translate(${lift.x.toFixed(1)},${lift.y.toFixed(1)})" style="pointer-events:none">`
        + `<image href="/pieces/${PIECE[lift.piece]}.png" x="${(-size/2).toFixed(1)}" y="${(-size/2).toFixed(1)}" width="${size.toFixed(1)}" height="${size.toFixed(1)}"${rot} filter="url(#tsh)"/></g>`;
