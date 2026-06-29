@@ -21,6 +21,10 @@ import base64
 import struct
 
 CELL = 96
+# Pieces sit inset within their cell, not flush to the grid — mirrors
+# explorer/index.html's PIECE_SCALE so the static diagrams read as frames of the
+# live viewer. tile() draws at size = 2*half*1.15, so half = CELL*scale/2.3.
+PIECE_SCALE = 0.85
 MARGIN = 34
 GAP = 20
 HAND_W = CELL
@@ -194,7 +198,7 @@ def render_position(pieces, outpath, sente_hand=(), gote_hand=(), highlight=None
                  f'fill-opacity="0.16" stroke="{HILITE}" stroke-width="4"/>')
     for f, rk, letter, owner in pieces:
         s.append(tile(cxc(COLS.index(f)), cyc(ROWS.index(rk)), letter, owner,
-                      half=CELL * 0.435, shadow=True))
+                      half=CELL * PIECE_SCALE / 2.3, shadow=False))
     if has_hand:
         hx = bx + BW + GAP + HAND_W / 2
         hh, hg, step = CELL * 0.30, CELL * 0.40, CELL * 0.76
@@ -242,7 +246,7 @@ def render_moves(outpath):
             s.append(f'<circle cx="{ox+pc*1.5+ux*pc:.1f}" cy="{oy+pc*1.5+uy*pc:.1f}" '
                      f'r="6.5" fill="{DOT}"/>')
         s.append(tile(ox + pc * 1.5, oy + pc * 1.5, letter, "sente",
-                      half=pc * 0.42, glyph=pc * 0.6, show_moves=False, shadow=True))
+                      half=pc * PIECE_SCALE / 2.3, glyph=pc * 0.6, show_moves=False, shadow=False))
     s.append("</svg>")
     write(outpath, "\n".join(s))
 

@@ -17,7 +17,7 @@
 <circle cx="46.0" cy="154.0" r="6.5" fill="#2b8a8a"/>
 <circle cx="46.0" cy="114.0" r="6.5" fill="#2b8a8a"/>
 <circle cx="46.0" cy="74.0" r="6.5" fill="#2b8a8a"/>
-<use href="#p_lion" x="66.7" y="94.7" width="38.6" height="38.6" filter="url(#tsh)"/>
+<use href="#p_lion" x="69.0" y="97.0" width="34.0" height="34.0"/>
 <text x="232.0" y="42" font-size="14" text-anchor="middle" fill="#333" font-weight="600">Giraffe</text>
 <rect x="172" y="54" width="120" height="120" rx="4" fill="#f1e6c6" filter="url(#bsh)"/>
 <line x1="212" y1="54" x2="212" y2="174" stroke="#00000018" stroke-width="1"/>
@@ -29,7 +29,7 @@
 <circle cx="272.0" cy="114.0" r="6.5" fill="#2b8a8a"/>
 <circle cx="232.0" cy="154.0" r="6.5" fill="#2b8a8a"/>
 <circle cx="192.0" cy="114.0" r="6.5" fill="#2b8a8a"/>
-<use href="#p_giraffe" x="212.7" y="94.7" width="38.6" height="38.6" filter="url(#tsh)"/>
+<use href="#p_giraffe" x="215.0" y="97.0" width="34.0" height="34.0"/>
 <text x="378.0" y="42" font-size="14" text-anchor="middle" fill="#333" font-weight="600">Elephant</text>
 <rect x="318" y="54" width="120" height="120" rx="4" fill="#f1e6c6" filter="url(#bsh)"/>
 <line x1="358" y1="54" x2="358" y2="174" stroke="#00000018" stroke-width="1"/>
@@ -41,7 +41,7 @@
 <circle cx="418.0" cy="154.0" r="6.5" fill="#2b8a8a"/>
 <circle cx="338.0" cy="154.0" r="6.5" fill="#2b8a8a"/>
 <circle cx="338.0" cy="74.0" r="6.5" fill="#2b8a8a"/>
-<use href="#p_elephant" x="358.7" y="94.7" width="38.6" height="38.6" filter="url(#tsh)"/>
+<use href="#p_elephant" x="361.0" y="97.0" width="34.0" height="34.0"/>
 <text x="524.0" y="42" font-size="14" text-anchor="middle" fill="#333" font-weight="600">Chick</text>
 <rect x="464" y="54" width="120" height="120" rx="4" fill="#f1e6c6" filter="url(#bsh)"/>
 <line x1="504" y1="54" x2="504" y2="174" stroke="#00000018" stroke-width="1"/>
@@ -50,7 +50,7 @@
 <line x1="464" y1="134" x2="584" y2="134" stroke="#00000018" stroke-width="1"/>
 <rect x="464" y="54" width="120" height="120" rx="4" fill="none" stroke="#9c8856" stroke-width="2"/>
 <circle cx="524.0" cy="74.0" r="6.5" fill="#2b8a8a"/>
-<use href="#p_chick" x="504.7" y="94.7" width="38.6" height="38.6" filter="url(#tsh)"/>
+<use href="#p_chick" x="507.0" y="97.0" width="34.0" height="34.0"/>
 <text x="670.0" y="42" font-size="14" text-anchor="middle" fill="#333" font-weight="600">Hen</text>
 <rect x="610" y="54" width="120" height="120" rx="4" fill="#f1e6c6" filter="url(#bsh)"/>
 <line x1="650" y1="54" x2="650" y2="174" stroke="#00000018" stroke-width="1"/>
@@ -64,5 +64,5 @@
 <circle cx="710.0" cy="114.0" r="6.5" fill="#2b8a8a"/>
 <circle cx="630.0" cy="114.0" r="6.5" fill="#2b8a8a"/>
 <circle cx="670.0" cy="154.0" r="6.5" fill="#2b8a8a"/>
-<use href="#p_hen" x="650.7" y="94.7" width="38.6" height="38.6" filter="url(#tsh)"/>
+<use href="#p_hen" x="653.0" y="97.0" width="34.0" height="34.0"/>
 </svg>
