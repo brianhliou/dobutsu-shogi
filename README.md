@@ -79,6 +79,7 @@ article/
   draft.md           # the English write-up (canonical authoring source)
 data/                # solved-game artifacts (perfect-play line, depth profile)
 assets/diagrams/     # diagrams generated from tablebase data
+tools/               # diagram/OG generators (render_board.py, render_og.py) + reference C probes (probe.c, find_positions.c)
 ```
 
 ## The result, in one paragraph
@@ -95,6 +96,9 @@ best-selling shogi product in Japan.
 
 Code is released under the [MIT License](LICENSE). The English article prose is © Brian Liou
 (all rights reserved); Tanaka's paper is third-party and not redistributed here (see `paper/`).
+The Dōbutsu Shōgi piece and board artwork is © Maiko Fujita (藤田麻衣子), from the game designed by
+Madoka Kitao (北尾まどか), [Nekomado](https://www.nekomado.com/) — used with permission for this
+project and **not licensed for reuse**.
 
 ## Canonical reference
 
