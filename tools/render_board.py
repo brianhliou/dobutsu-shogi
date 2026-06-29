@@ -218,35 +218,45 @@ def render_position(pieces, outpath, sente_hand=(), gote_hand=(), highlight=None
 
 
 def render_moves(outpath):
-    panels = [("Lion", "L"), ("Giraffe", "G"), ("Elephant", "E"), ("Chick", "C"), ("Hen", "H")]
-    pc, title_h, gap, rx = 40, 28, 26, 4
+    # two rows: the three major pieces on top, Chick and its Hen promotion
+    # centered below. Bigger cells than a single 5-wide strip.
+    rows = [[("Lion", "L"), ("Giraffe", "G"), ("Elephant", "E")],
+            [("Chick", "C"), ("Hen", "H")]]
+    pc, title_h, gap, rx = 58, 30, 28, 5
     grid = pc * 3
     pw, ph = grid, grid + title_h
-    w = len(panels) * pw + (len(panels) + 1) * gap
-    h = ph + gap * 2
+    dot_r = pc * 0.16
+    ncols = max(len(r) for r in rows)
+    w = ncols * pw + (ncols + 1) * gap
+    h = len(rows) * ph + (len(rows) + 1) * gap
     s = [svg_open(w, h), f'<rect width="{w}" height="{h}" fill="{BG}"/>',
-         piece_defs(p[1] for p in panels), '<defs>' + SHADOW_DEFS + '</defs>']
-    for i, (name, letter) in enumerate(panels):
-        ox, oy = gap + i * (pw + gap), gap + title_h
-        s.append(f'<text x="{ox+grid/2:.1f}" y="{gap+16}" font-size="14" '
-                 f'text-anchor="middle" fill="#333" font-weight="600">{name}</text>')
-        # each panel is a little board: savanna field, #00000018 grid, and the
-        # same flush rounded brown frame, so the legend reads as the same surface
-        s.append(f'<rect x="{ox}" y="{oy}" width="{grid}" height="{grid}" rx="{rx}" '
-                 f'fill="#f1e6c6" filter="url(#bsh)"/>')
-        for g in range(1, 3):
-            s.append(f'<line x1="{ox+g*pc}" y1="{oy}" x2="{ox+g*pc}" y2="{oy+grid}" '
-                     f'stroke="#00000018" stroke-width="1"/>')
-            s.append(f'<line x1="{ox}" y1="{oy+g*pc}" x2="{ox+grid}" y2="{oy+g*pc}" '
-                     f'stroke="#00000018" stroke-width="1"/>')
-        s.append(f'<rect x="{ox}" y="{oy}" width="{grid}" height="{grid}" rx="{rx}" '
-                 f'fill="none" stroke="{BOARD_FRAME}" stroke-width="2"/>')
-        for d in MOVES[letter]:
-            ux, uy = DIRS[d]
-            s.append(f'<circle cx="{ox+pc*1.5+ux*pc:.1f}" cy="{oy+pc*1.5+uy*pc:.1f}" '
-                     f'r="6.5" fill="{DOT}"/>')
-        s.append(tile(ox + pc * 1.5, oy + pc * 1.5, letter, "sente",
-                      half=pc * PIECE_SCALE / 2.3, glyph=pc * 0.6, show_moves=False, shadow=False))
+         piece_defs(p[1] for row in rows for p in row), '<defs>' + SHADOW_DEFS + '</defs>']
+    for ri, row in enumerate(rows):
+        ytop = gap + ri * (ph + gap)
+        oy = ytop + title_h
+        row_w = len(row) * pw + (len(row) - 1) * gap
+        x0 = (w - row_w) / 2                       # centre each row
+        for ci, (name, letter) in enumerate(row):
+            ox = x0 + ci * (pw + gap)
+            s.append(f'<text x="{ox+grid/2:.1f}" y="{ytop+19:.1f}" font-size="16" '
+                     f'text-anchor="middle" fill="#333" font-weight="600">{name}</text>')
+            # each panel is a little board: savanna field, #00000018 grid, and the
+            # same flush rounded brown frame, so the legend reads as the same surface
+            s.append(f'<rect x="{ox:.1f}" y="{oy:.1f}" width="{grid}" height="{grid}" rx="{rx}" '
+                     f'fill="#f1e6c6" filter="url(#bsh)"/>')
+            for g in range(1, 3):
+                s.append(f'<line x1="{ox+g*pc:.1f}" y1="{oy:.1f}" x2="{ox+g*pc:.1f}" y2="{oy+grid:.1f}" '
+                         f'stroke="#00000018" stroke-width="1"/>')
+                s.append(f'<line x1="{ox:.1f}" y1="{oy+g*pc:.1f}" x2="{ox+grid:.1f}" y2="{oy+g*pc:.1f}" '
+                         f'stroke="#00000018" stroke-width="1"/>')
+            s.append(f'<rect x="{ox:.1f}" y="{oy:.1f}" width="{grid}" height="{grid}" rx="{rx}" '
+                     f'fill="none" stroke="{BOARD_FRAME}" stroke-width="2"/>')
+            for d in MOVES[letter]:
+                ux, uy = DIRS[d]
+                s.append(f'<circle cx="{ox+pc*1.5+ux*pc:.1f}" cy="{oy+pc*1.5+uy*pc:.1f}" '
+                         f'r="{dot_r:.1f}" fill="{DOT}"/>')
+            s.append(tile(ox + pc * 1.5, oy + pc * 1.5, letter, "sente",
+                          half=pc * PIECE_SCALE / 2.3, glyph=pc * 0.6, show_moves=False, shadow=False))
     s.append("</svg>")
     write(outpath, "\n".join(s))
 
