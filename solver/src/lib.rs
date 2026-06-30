@@ -264,6 +264,27 @@ impl Position {
     pub fn is_immediate_win(&self) -> bool {
         self.moves().iter().any(|m| self.is_terminal_win_move(m))
     }
+
+    /// Side to move can capture the enemy lion with this move (Tanaka's
+    /// "win-determined"). Unlike `is_terminal_win_move`, a safe Try is NOT
+    /// counted here: Tanaka resolves Tries one ply later (his +1-ply convention).
+    pub fn captures_lion(&self, m: &Move) -> bool {
+        m.capture && matches!(self.board[m.to as usize], Some((Piece::Lion, _)))
+    }
+
+    /// The enemy lion sits on the side-to-move's home back rank: Tanaka's
+    /// "loss-determined" position, reached one ply after the opponent's safe Try.
+    pub fn enemy_lion_on_home_rank(&self) -> bool {
+        let home = self.turn.flip().enemy_back_rank();
+        for (sq, cell) in self.board.iter().enumerate() {
+            if let Some((Piece::Lion, o)) = cell {
+                if *o != self.turn && rank(sq as u8) == home {
+                    return true;
+                }
+            }
+        }
+        false
+    }
 }
 
 fn piece_char(pc: Piece) -> char {

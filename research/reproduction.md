@@ -165,12 +165,18 @@ Saved run and artifact stats:
 The compact tablebase layout is a 28-byte header, `92,150,304` bytes of serialized minimal
 perfect hash, and `240,742,560` bytes of 9-bit packed values.
 
-- **Standard game:** 213,993,386 canonical positions, initial −78, max DTM 173, draws 2,674,649.
+- **Standard game:** 213,993,386 canonical positions (our default reachability), initial −78,
+  max DTM 173, draws 2,674,649.
+- **Reproducing Tanaka's count.** With his +1-ply Try convention (`enumerate --tanaka`: terminal =
+  the side to move can capture the enemy lion, or the enemy lion already sits on the mover's home
+  rank), the reachable count is **246,803,167** and non-terminal **99,485,568** — his §3.1 figures
+  to the digit. The gap to our 213,993,386 is exactly the ~33M post-Try positions his convention
+  keeps and our default stops short of.
 - **No-drops ablation** (`--no-drops`: captured pieces leave the board as in chess):
-  **797,658 positions** (~270× smaller), initial value **0 (draw)**, max DTM **37 plies**,
-  draw rate 4.88%. So removing drops turns a 247M-position, 173-ply, second-player-win game
-  into a sub-million-position, 37-ply **draw** — direct evidence that the drop rule is what
-  makes the game deep (article §4).
+  **797,658** canonical positions on our default convention (**962,894** under Tanaka's +1-ply
+  convention, for like-for-like comparison with 246,803,167), initial value **0 (draw)**, max DTM
+  **37 plies**, draw rate 4.88%. Removing drops turns the game into a sub-million-position, 37-ply
+  **draw** — direct evidence that the drop rule is what makes it deep (article §4).
 
   Caveat: the no-drops variant has no external oracle (clausecker is drops-only). It uses the
   same retrograde machinery validated on the standard game, with a minimal rules change
