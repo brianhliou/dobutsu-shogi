@@ -88,6 +88,17 @@ for retrograde analysis. My Rust rerun on Apple Silicon took about 75 minutes an
 table. The live explorer serves that compact file through a probe process that holds about
 400 MB resident.
 
+That first pass leaned on a hash map spread across 8 GB, which is why it ran far
+slower than Clausecker's reference solve (about a minute, 167 MB). His version
+gives each position a computed address built from its contents: which pieces are
+in play, where the two lions sit, how the rest are arranged. Nothing is hashed,
+so the whole table is one contiguous byte array. Porting that index brought my
+solve to 243 MB and 3.5 minutes, faster and smaller at once, since random access
+across 8 GB thrashes the cache and a packed array does not. The values come out
+identical, checked against Clausecker's probe to the ply. Reaching his exact
+167 MB needs one more symmetry he folds and I have not, which is bookkeeping more
+than insight.
+
 ---
 
 ## 3. Notable findings
