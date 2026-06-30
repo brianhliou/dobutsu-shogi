@@ -36,14 +36,15 @@ primary-source citation, back to Wikipedia.
 
 The solve is reproduced from scratch in Rust (`solver/`), not taken on faith:
 
-- **213,993,386** canonical positions (Tanaka's reachable count with turn + mirror symmetry
-  folded) enumerated and labeled by **retrograde analysis** — backward induction from terminal
-  positions, ~75 min and ~7 GB RAM. The initial position evaluates to **−78** (gote win in 78);
-  the deepest forced mate is 173 plies.
+- **213,993,386** canonical positions (turn + mirror symmetry folded) enumerated and labeled by
+  **retrograde analysis** — backward induction from terminal positions, ~75 min and ~7 GB RAM.
+  Enumerating with Tanaka's +1-ply Try convention reproduces his exact reachable count,
+  **246,803,167** (**99,485,568** non-terminal). The initial position evaluates to **−78** (gote
+  win in 78); the deepest forced mate is 173 plies.
 - Packed into a **333 MB** compact tablebase (minimal perfect hash + 9-bit distances) — this is
   what the live explorer probes.
-- **Validated** position-by-position against the independent clausecker/dobutsu engine:
-  **0 mismatches**.
+- **Validated** against the independent clausecker/dobutsu engine: **0 mismatches** on a
+  50,000-position sample.
 - **Drops ablation:** re-solving with captured pieces removed (chess-style) collapses the game
   to a **37-ply draw** — direct evidence that the drop rule is what makes it deep.
 
