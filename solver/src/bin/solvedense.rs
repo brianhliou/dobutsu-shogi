@@ -102,17 +102,19 @@ fn main() {
     // bulk of decided positions; doing them here keeps them out of the fixpoint's
     // per-round result buffer. Disjoint chunks => no aliasing.
     let chunk = 1usize << 20;
-    vals.par_chunks_mut(chunk).enumerate().for_each(|(ci, slice)| {
-        let base = (ci * chunk) as u64;
-        for (i, slot) in slice.iter_mut().enumerate() {
-            let off = base + i as u64;
-            if let Some(p) = decode_checked(off) {
-                if p.moves().iter().any(|m| p.is_terminal_win_move(m)) {
-                    *slot = 1;
+    vals.par_chunks_mut(chunk)
+        .enumerate()
+        .for_each(|(ci, slice)| {
+            let base = (ci * chunk) as u64;
+            for (i, slot) in slice.iter_mut().enumerate() {
+                let off = base + i as u64;
+                if let Some(p) = decode_checked(off) {
+                    if p.moves().iter().any(|m| p.is_terminal_win_move(m)) {
+                        *slot = 1;
+                    }
                 }
             }
-        }
-    });
+        });
     let init_wins = vals.par_iter().filter(|&&v| v == 1).count();
     eprintln!("[{:?}] init: {init_wins} immediate wins", t0.elapsed());
 
@@ -141,7 +143,10 @@ fn main() {
             break;
         }
     }
-    eprintln!("[{:?}] fixpoint converged after {round} rounds", t0.elapsed());
+    eprintln!(
+        "[{:?}] fixpoint converged after {round} rounds",
+        t0.elapsed()
+    );
 
     // remaining unknown valid slots are draws
     vals.par_iter_mut().for_each(|v| {

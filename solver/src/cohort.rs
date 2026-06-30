@@ -93,7 +93,8 @@ fn to_cpos(p: &Position) -> CPos {
                 };
                 if is_kind {
                     let slot = base + n;
-                    pieces[slot] = remap(sq as u8) | if *owner == Owner::Gote { GOTE_PIECE } else { 0 };
+                    pieces[slot] =
+                        remap(sq as u8) | if *owner == Owner::Gote { GOTE_PIECE } else { 0 };
                     if promoted {
                         status |= 1 << slot;
                     }
@@ -444,7 +445,11 @@ fn from_cpos(c: &CPos) -> Position {
     for slot in 0..8 {
         let v = c.pieces[slot];
         let sq = (v & !GOTE_PIECE) as usize;
-        let owner = if gote_owns(v) { Owner::Gote } else { Owner::Sente };
+        let owner = if gote_owns(v) {
+            Owner::Gote
+        } else {
+            Owner::Sente
+        };
         let kind = slot / 2; // 0 chick, 1 giraffe, 2 elephant, 3 lion
         if sq == IN_HAND as usize {
             let h = if owner == Owner::Sente {

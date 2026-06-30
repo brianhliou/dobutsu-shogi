@@ -27,7 +27,10 @@ fn main() {
     let full = env::args().any(|a| a == "--full");
     println!("POSITION_TOTAL_COUNT = {POSITION_TOTAL_COUNT} (unfolded array size)");
     println!("POSITION_COUNT       = {POSITION_COUNT} (clausecker's folded size)");
-    assert_eq!(POSITION_TOTAL_COUNT, 255_280_704, "table total count mismatch");
+    assert_eq!(
+        POSITION_TOTAL_COUNT, 255_280_704,
+        "table total count mismatch"
+    );
     assert_eq!(POSITION_COUNT, 167_527_962, "table count mismatch");
 
     // ---- gate 1: reachable sample ----
@@ -46,10 +49,21 @@ fn main() {
     while let Some(p) = q.pop_front() {
         if !is_terminal(&p) {
             let off = encode(&p);
-            assert!(off < POSITION_TOTAL_COUNT, "offset {off} out of range for {p:?}");
+            assert!(
+                off < POSITION_TOTAL_COUNT,
+                "offset {off} out of range for {p:?}"
+            );
             let rt = decode_checked(off).expect("encoded slot must decode");
-            assert_eq!(encode(&rt), off, "offset round-trip mismatch at {off}\n {p:?}\n {rt:?}");
-            assert_eq!(encode_checked(&p), Some(off), "encode_checked disagrees at {off}");
+            assert_eq!(
+                encode(&rt),
+                off,
+                "offset round-trip mismatch at {off}\n {p:?}\n {rt:?}"
+            );
+            assert_eq!(
+                encode_checked(&p),
+                Some(off),
+                "encode_checked disagrees at {off}"
+            );
             offsets.insert(off);
         }
         n += 1;
@@ -67,7 +81,10 @@ fn main() {
             }
         }
     }
-    println!("gate 1 OK: {n} reachable positions, {} distinct offsets", offsets.len());
+    println!(
+        "gate 1 OK: {n} reachable positions, {} distinct offsets",
+        offsets.len()
+    );
 
     // ---- gate 2: bijection encode(decode(i)) == i over valid slots ----
     let stride = if full { 1 } else { 2003 };
