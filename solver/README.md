@@ -24,6 +24,11 @@ and runs the **drops ablation** — re-solving with drops disabled — that the 
   spot-check against clausecker has **0 mismatches**. (213,993,386 is our canonical count;
   Tanaka's published *reachable* figure is 246,803,167 — a different denominator. See
   [`../research/reproduction.md`](../research/reproduction.md).)
+- **Dense cohort solve — done.** `solvedense` ports clausecker's computed position index
+  (ownership × cohort × lion × placement) and solves over a flat **243 MB** `Vec<i8>` in
+  **~3.5 min** instead of the hash map's ~8 GB / ~75 min — smaller *and* faster, since
+  gigabyte-scale random access is cache-hostile. `cohortcheck` proves the index is a bijection
+  over all 249,442,767 valid slots; the solve matches clausecker's probe with **0 mismatches**.
 - **Compact tablebase — done.** `compact` packs the solve into a 333 MB `dobutsu.ctb`
   (a minimal perfect hash over the canonical keys + 9-bit distance values, ~400 MB
   resident); `ctbprobe` serves it. This is what the deployed explorer runs.
@@ -35,7 +40,8 @@ and runs the **drops ablation** — re-solving with drops disabled — that the 
 
 | Run / artifact | Resource use | Time | Output |
 |---|---:|---:|---:|
-| Standard solve (`solve --save`) | ~7 GB RAM | ~75 min | `dobutsu.tb.bin`, 2,139,933,860 bytes (2.0 GiB) |
+| Standard solve (`solve --save`) | ~7 GB RAM | ~75 min serial, ~17 min parallel | `dobutsu.tb.bin`, 2,139,933,860 bytes (2.0 GiB) |
+| Dense cohort solve (`solvedense`) | 243 MB array, 635 MB peak RSS | ~3.5 min | in-memory DTM, all legal positions, 0 mismatches vs probe |
 | Compact tablebase (`compact`) | compact build RSS/timing not recorded | not recorded | `dobutsu.ctb`, 332,892,892 bytes (317 MiB) |
 | Hosted probe (`ctbprobe`) | ~400 MB resident | cold load in well under the API timeout locally | serves the 333 MB compact table |
 | clausecker baseline (`gentb -j 8`) | ~256 MB peak RSS | <1 min on Apple Silicon | `dobutsu.tb`, 167,527,962 bytes (160 MiB) |
@@ -48,7 +54,9 @@ The compact file is `92,150,304` bytes of serialized minimal perfect hash plus
 | `cargo run --release --bin …` | does |
 |---|---|
 | `enumerate`            | enumerate / count the canonical reachable positions |
-| `solve`               | retrograde solve (add `--no-drops` for the ablation) |
+| `solve`               | retrograde solve over a hash map (add `--no-drops` for the ablation) |
+| `solvedense`          | retrograde solve over the dense cohort index (243 MB, ~3.5 min) |
+| `cohortcheck`         | prove the cohort index is a bijection over all valid slots |
 | `compact`             | pack the solve into the compact `dobutsu.ctb` (MPH + 9-bit values) |
 | `tbprobe` / `ctbprobe` | stdin/stdout JSON probe over the records / compact table |
 | `oracle_diff`         | bulk-validate move/result generation against clausecker |
@@ -56,7 +64,8 @@ The compact file is `92,150,304` bytes of serialized minimal perfect hash plus
 ## Remaining (optional)
 
 - Compile the probe to WASM for a fully static/offline explorer (no server).
-- Speed: cache successor adjacency (a round becomes array reads) to cut the solve to ~10 min.
+- Port clausecker's Sente≥Gote ownership fold to bring the dense solve from 243 MB to his exact
+  167 MB (store 42 of 64 ownership classes; compute the other 22 on demand from children).
 
 ## Run
 

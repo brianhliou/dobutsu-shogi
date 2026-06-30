@@ -158,7 +158,8 @@ Saved run and artifact stats:
 | Tanaka 2009 solve | 2.6 GHz Opteron, 16 GB RAM | ~19 min enumeration, ~5.5 hr retrograde | paper result |
 | clausecker `gentb -j 8` | ~256 MB peak RSS | <1 min on Apple Silicon | `dobutsu.tb`, 167,527,962 bytes (160 MiB) |
 | `find_positions dobutsu.tb` scan | not recorded | ~30 s | depth profile, showcase positions, perfect game |
-| Rust standard solve (`solve --save`) | ~7 GB RAM | ~75 min | `dobutsu.tb.bin`, 2,139,933,860 bytes (2.0 GiB) |
+| Rust standard solve (`solve --save`) | ~7 GB RAM | ~75 min serial, ~17 min parallel | `dobutsu.tb.bin`, 2,139,933,860 bytes (2.0 GiB) |
+| Rust dense solve (`solvedense`) | 243 MB array, 635 MB peak RSS | ~3.5 min | in-memory DTM, all legal positions, 0 mismatches vs probe |
 | Compact tablebase (`compact`) | compact build RSS/timing not recorded | not recorded | `dobutsu.ctb`, 332,892,892 bytes (317 MiB) |
 | Hosted compact probe (`ctbprobe`) | ~400 MB resident | cold load in well under `PROBE_TIMEOUT=20s` locally | answers explorer queries over stdin/stdout |
 
@@ -181,6 +182,33 @@ perfect hash, and `240,742,560` bytes of 9-bit packed values.
   Caveat: the no-drops variant has no external oracle (clausecker is drops-only). It uses the
   same retrograde machinery validated on the standard game, with a minimal rules change
   (no drop moves; captures vanish instead of entering the hand).
+
+### Closing the gap to clausecker (`solvedense`)
+
+The first solve was a naive `HashMap<u64,u32>` keyed by the packed position, plus a parallel
+`Vec<u64>` of keys: ~8 GB and ~75 min (cut to ~17 min once the retrograde fixpoint was
+parallelized with rayon — the Jacobi step reads only prior-round values, so each position is
+independent). That is ~75× slower and ~30× larger than clausecker's ~1 min / 167 MB. The gap
+was never the algorithm; it was the index.
+
+`solvedense` ports clausecker's four-level position index (ownership × cohort × lion position ×
+piece placement; tables machine-extracted from his `poscode.c` into `solver/src/cohort_tables.rs`,
+bridged to our `Position` in `solver/src/cohort.rs`) and solves over a flat `Vec<i8>` instead of
+a hash map. Distance-to-mate is stored in **double moves** (his convention) so each entry fits a
+signed byte. `cohortcheck` proves the index is a bijection (`encode(decode(i)) == i`) over all
+**249,442,767** valid slots.
+
+Result: the same retrograde over a **243 MB** byte array in **~3.5 min** (635 MB peak RSS,
+the round-1 result buffer over the array), covering the full all-legal domain. It is smaller
+*and* faster than the hash map, because gigabyte-scale random access is cache-hostile and a
+contiguous computed index is not. Validated against clausecker's `probe`: initial −78, max DTM
+173, **0 mismatches** over a ~4,900-position sample. One coordinate gotcha worth recording: our
+square numbering is the 180° reverse of his (`our_sq = 11 − his_sq`), reconciled at the encode
+boundary.
+
+The remaining ~1.5× to his exact 167 MB is his Sente≥Gote ownership fold (store the 42 ownership
+classes where Sente has at least half the pieces; compute the other 22 on demand from children,
+which are provably always in the stored half). It is well-scoped but not yet implemented.
 
 ## Not yet reproduced (optional)
 

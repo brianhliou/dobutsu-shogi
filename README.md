@@ -37,14 +37,21 @@ primary-source citation, back to Wikipedia.
 The solve is reproduced from scratch in Rust (`solver/`), not taken on faith:
 
 - **213,993,386** canonical positions (turn + mirror symmetry folded) enumerated and labeled by
-  **retrograde analysis** — backward induction from terminal positions, ~75 min and ~7 GB RAM.
-  Enumerating with Tanaka's +1-ply Try convention reproduces his exact reachable count,
-  **246,803,167** (**99,485,568** non-terminal). The initial position evaluates to **−78** (gote
-  win in 78); the deepest forced mate is 173 plies.
+  **retrograde analysis** — backward induction from terminal positions. Enumerating with Tanaka's
+  +1-ply Try convention reproduces his exact reachable count, **246,803,167** (**99,485,568**
+  non-terminal). The initial position evaluates to **−78** (gote win in 78); the deepest forced
+  mate is 173 plies.
 - Packed into a **333 MB** compact tablebase (minimal perfect hash + 9-bit distances) — this is
   what the live explorer probes.
 - **Validated** against the independent clausecker/dobutsu engine: **0 mismatches** on a
   50,000-position sample.
+- **Compact and fast.** The first solve used a `HashMap` over ~8 GB and ran ~75 min. Porting
+  clausecker's computed position index (ownership × cohort × lion × placement) lets the same
+  retrograde run over a flat **243 MB** byte array in **~3.5 min** — smaller *and* faster, because
+  gigabyte-scale random access is cache-hostile while a contiguous computed index is not. It
+  covers the full all-legal domain (clausecker's, not just reachable-from-start) and matches his
+  values to the ply: **0 mismatches** over a ~4,900-position sample against his probe. The last
+  1.5× to his exact 167 MB is his Sente≥Gote ownership fold, not yet ported.
 - **Drops ablation:** re-solving with captured pieces removed (chess-style) collapses the game
   to a **37-ply draw** — direct evidence that the drop rule is what makes it deep.
 
@@ -56,7 +63,8 @@ These are the saved resource numbers for the solve and the tablebases:
 |---|---:|---:|---:|
 | Tanaka 2009 solve | 2.6 GHz Opteron, 16 GB RAM | ~19 min enumeration, ~5.5 hr retrograde | published value table |
 | clausecker reproduction | ~256 MB peak RSS | <1 min | `dobutsu.tb`, 167,527,962 bytes (160 MiB) |
-| Rust standard solve | ~7 GB RAM | ~75 min | `solver/dobutsu.tb.bin`, 2,139,933,860 bytes (2.0 GiB) |
+| Rust standard solve (`solve`) | ~7 GB RAM | ~75 min serial, ~17 min parallel | `solver/dobutsu.tb.bin`, 2,139,933,860 bytes (2.0 GiB) |
+| Rust dense solve (`solvedense`) | 243 MB array (635 MB peak) | ~3.5 min | in-memory DTM over all legal positions, 0 mismatches vs probe |
 | Compact tablebase | `ctbprobe` holds ~400 MB resident | compact timing not recorded | `solver/dobutsu.ctb`, 332,892,892 bytes (317 MiB) |
 
 ```sh
