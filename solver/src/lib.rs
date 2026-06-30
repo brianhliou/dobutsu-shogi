@@ -6,6 +6,7 @@
 //! advances toward rank 0. Position strings use clausecker's format
 //! `side / rank1 / rank2 / rank3 / rank4 / hand`, e.g. `S/gle/-c-/-C-/ELG/-`.
 
+pub mod cohort;
 pub mod rank;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
