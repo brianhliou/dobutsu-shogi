@@ -183,9 +183,11 @@ fn piece_for_code(code: u8) -> Option<(Piece, Owner)> {
 fn apply(code: u8, g: usize, e: usize, c: usize) -> Option<(usize, usize, usize)> {
     match code {
         0 => Some((g, e, c)),
-        1 | 2 => (g > 0).then_some((g - 1, e, c)),
-        3 | 4 => (e > 0).then_some((g, e - 1, c)),
-        5 | 6 | 7 | 8 => (c > 0).then_some((g, e, c - 1)),
+        // `then` (lazy) not `then_some` (eager): the decrement must not run when
+        // the budget is 0, or it underflows (panics under debug overflow checks).
+        1 | 2 => (g > 0).then(|| (g - 1, e, c)),
+        3 | 4 => (e > 0).then(|| (g, e - 1, c)),
+        5 | 6 | 7 | 8 => (c > 0).then(|| (g, e, c - 1)),
         _ => unreachable!(),
     }
 }
