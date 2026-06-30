@@ -13,6 +13,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 
 use dobutsu::{canonical_key, format, parse, unpack, Move, Position};
+use rayon::prelude::*;
 
 const INIT: &str = "S/gle/-c-/-C-/ELG/-";
 const UNKNOWN: i16 = 0;
@@ -101,35 +102,45 @@ fn main() {
     let mut round = 0;
     loop {
         round += 1;
-        let mut decisions: Vec<(u32, i16)> = Vec::new();
-        let mut next: Vec<u32> = Vec::with_capacity(unknown.len() / 2);
-        for &id in &unknown {
-            let p = unpack(keys[id as usize]);
-            let mut best_win: Option<i16> = None;
-            let mut worst_loss: i16 = 0;
-            let mut any_unknown = false;
-            for m in &gen(&p) {
-                let v = values[*index.get(&canonical_key(&mk(&p, m))).unwrap() as usize];
-                if v == UNKNOWN {
-                    any_unknown = true;
-                } else if v < 0 {
-                    let d = -v;
-                    best_win = Some(best_win.map_or(d, |b| b.min(d)));
-                } else {
-                    worst_loss = worst_loss.max(v);
+        // Jacobi step: every unknown position decides from prior-round values, so
+        // the per-position work is independent and parallelizes across cores.
+        let outcomes: Vec<(u32, Option<i16>)> = unknown
+            .par_iter()
+            .map(|&id| {
+                let p = unpack(keys[id as usize]);
+                let mut best_win: Option<i16> = None;
+                let mut worst_loss: i16 = 0;
+                let mut any_unknown = false;
+                for m in &gen(&p) {
+                    let v = values[*index.get(&canonical_key(&mk(&p, m))).unwrap() as usize];
+                    if v == UNKNOWN {
+                        any_unknown = true;
+                    } else if v < 0 {
+                        let d = -v;
+                        best_win = Some(best_win.map_or(d, |b| b.min(d)));
+                    } else {
+                        worst_loss = worst_loss.max(v);
+                    }
                 }
+                if let Some(d) = best_win {
+                    (id, Some(d + 1))
+                } else if any_unknown {
+                    (id, None)
+                } else {
+                    (id, Some(-(worst_loss + 1)))
+                }
+            })
+            .collect();
+        let mut next: Vec<u32> = Vec::with_capacity(unknown.len() / 2);
+        let mut decided = 0usize;
+        for (id, v) in outcomes {
+            match v {
+                Some(val) => {
+                    values[id as usize] = val;
+                    decided += 1;
+                }
+                None => next.push(id),
             }
-            if let Some(d) = best_win {
-                decisions.push((id, d + 1));
-            } else if any_unknown {
-                next.push(id);
-            } else {
-                decisions.push((id, -(worst_loss + 1)));
-            }
-        }
-        let decided = decisions.len();
-        for (id, v) in &decisions {
-            values[*id as usize] = *v;
         }
         unknown = next;
         if round % 10 == 1 || decided == 0 {
