@@ -47,6 +47,12 @@ PIECES = os.path.join(ROOT, "assets", "pieces", "official")
 PORT = int(os.environ.get("PORT", 41234))  # Railway injects $PORT; default for local dev
 INITIAL = "S/gle/-c-/-C-/ELG/-"
 
+# The board + six piece PNGs never change under a given filename, so let the
+# browser and any proxy cache them. Without this header http.server sends no
+# validator, so every visit (and every reload) refetches all seven — exactly the
+# request burst that fires right after the page loads.
+STATIC_CACHE = {"Cache-Control": "public, max-age=86400"}
+
 # Position strings are short and use only this alphabet. Reject anything else
 # before it reaches the probe — the probe is the real validator, but this keeps
 # pathological input out of the subprocess.
@@ -104,6 +110,17 @@ def query(pos):
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
+    # HTTP/1.0 (the stdlib default) closes the socket after every response, so
+    # Railway's edge proxy has to open a fresh upstream connection per request.
+    # That connection churn — not the container, which serves each request in a
+    # few ms — is what makes the embed load with erratic multi-second lag. 1.1
+    # keeps the connection alive for reuse; every response already sends an exact
+    # Content-Length, which is what 1.1 needs to delimit bodies.
+    protocol_version = "HTTP/1.1"
+    # Drop a kept-alive connection that goes idle, so a lingering upstream socket
+    # can't pin a worker thread forever.
+    timeout = 65
+
     def _send(self, code, ctype, body, extra=None):
         if not isinstance(body, bytes):
             body = body.encode()
@@ -136,7 +153,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             fp = os.path.join(EMOJI, name)
             if name.endswith(".svg") and os.path.isfile(fp):
                 with open(fp, "rb") as fh:
-                    self._send(200, "image/svg+xml", fh.read())
+                    self._send(200, "image/svg+xml", fh.read(), STATIC_CACHE)
             else:
                 self._send(404, "text/plain", b"not found")
         elif u.path.startswith("/pieces/"):
@@ -147,14 +164,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 # image search (X-Robots-Tag doesn't block the fetch, so the page
                 # and the embedded iframe still display it normally).
                 with open(fp, "rb") as fh:
-                    self._send(200, "image/png", fh.read(), {"X-Robots-Tag": "noindex"})
+                    self._send(200, "image/png", fh.read(), {**STATIC_CACHE, "X-Robots-Tag": "noindex"})
             else:
                 self._send(404, "text/plain", b"not found")
         elif u.path == "/og.png":
             fp = os.path.join(HERE, "og.png")
             if os.path.isfile(fp):
                 with open(fp, "rb") as fh:
-                    self._send(200, "image/png", fh.read(), {"X-Robots-Tag": "noindex"})
+                    self._send(200, "image/png", fh.read(), {**STATIC_CACHE, "X-Robots-Tag": "noindex"})
             else:
                 self._send(404, "text/plain", b"not found")
         else:
@@ -169,6 +186,11 @@ class Server(socketserver.ThreadingTCPServer):
     # call; /api itself is serialized by _probe_lock around the single probe pipe.
     allow_reuse_address = True
     daemon_threads = True
+    # The page loads as a burst (HTML, /api, board + six piece PNGs). The stdlib
+    # default backlog of 5 can overflow on that burst, and dropped SYNs retransmit
+    # on a ~1s/3s/7s/15s backoff — the exact lag ladder seen on the embed. Give the
+    # accept queue room to absorb the burst.
+    request_queue_size = 128
 
 
 if __name__ == "__main__":

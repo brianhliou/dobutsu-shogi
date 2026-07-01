@@ -7,6 +7,14 @@
 <meta name="description" content="Dōbutsu Shōgi (動物将棋, animal shogi) is a 3×4 children's shogi that is strongly solved: with perfect play the second player wins in 78 plies. Explore all 246,803,167 reachable positions in a complete endgame tablebase.">
 <link rel="canonical" href="https://dobutsu.brianhliou.com/">
 <link rel="icon" href="/pieces/lion.png">
+<!-- The board renders these the moment the script runs; preloading starts the
+     fetches during head parse, in parallel with the script, instead of after it. -->
+<link rel="preload" as="image" href="/pieces/board.png">
+<link rel="preload" as="image" href="/pieces/lion.png">
+<link rel="preload" as="image" href="/pieces/giraffe.png">
+<link rel="preload" as="image" href="/pieces/elephant.png">
+<link rel="preload" as="image" href="/pieces/chick.png">
+<link rel="preload" as="image" href="/pieces/hen.png">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://dobutsu.brianhliou.com/">
 <meta property="og:title" content="Dōbutsu Shōgi, Solved — Interactive Tablebase Explorer">
@@ -626,11 +634,22 @@ function loadLine(plies, startPly) {
   if (p === 0) showPos(INITIAL); else jumpTo(p);
 }
 
+// Paint the board straight from a known position string, before any /api call,
+// so the pieces show up immediately instead of after a network round-trip. The
+// verdict bar and ranked-move list keep their loading placeholders until the
+// tablebase reply lands and render() fills them in.
+function firstPaint(pos) {
+  curParsed = parsePos(pos);
+  renderBoard(curParsed);
+}
+
 function boot() {
   const q = new URLSearchParams(location.search);
-  if (q.get("game") === "perfect") { loadLine(PERFECT_GAME, parseInt(q.get("ply"), 10)); return; }
   const pos = q.get("pos");
-  if (pos && /^[A-Za-z/-]{1,64}$/.test(pos)) { startAt(pos); return; }
+  const valid = pos && /^[A-Za-z/-]{1,64}$/.test(pos);
+  firstPaint(valid ? pos : INITIAL);                  // immediate board, no round-trip
+  if (q.get("game") === "perfect") { loadLine(PERFECT_GAME, parseInt(q.get("ply"), 10)); return; }
+  if (valid) { startAt(pos); return; }
   showPos(INITIAL);
 }
 
